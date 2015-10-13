@@ -4,7 +4,7 @@ from Tkconstants import BOTH, LEFT, W, E, S, N
 
 from Tkinter import Canvas
 import Tkinter
-from module_1.state import NodeState
+from state import NodeState
 
 
 class Board(Canvas):
@@ -37,7 +37,8 @@ class Board(Canvas):
 
         self.delete(Tkinter.ALL)
 
-        # Use node class instead
+        # Length of path
+        path_length = 0
 
         # Loop the grid
         for y in range(len(grid)):
@@ -71,10 +72,9 @@ class Board(Canvas):
 
                 # Check if on path
                 # When finished, draw the path
-                if finished:
-                    if [y, x] in current.get_reconstructed_path():
-                        self.create_oval(left, top, right, bottom, fill="#000")
-
+                if finished and [y, x] in current.get_reconstructed_path():
+                    path_length = path_length+1
+                    self.create_oval(left, top, right, bottom, fill="#000")
         # Pack
         self.grid(row=self.row, column=self.column, sticky=N + S + E + W, padx=20, pady=20)
 
@@ -83,5 +83,5 @@ class Board(Canvas):
             self.after(self.delay, lambda: self.run.run())
         else:
             self.stats.set(
-                'Length of path: ' + str(len(current.path)) + '\n' + 'Total nodes created: ' + str(len(closed_list)))
+                'Length of path: ' + str(path_length) + '\n' + 'Total nodes created: ' + str(len(closed_list)))
             print current.get_reconstructed_path()
