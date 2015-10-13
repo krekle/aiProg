@@ -55,6 +55,7 @@ class GameGui(Tk):
         self.bind('<Right>', self.move)
         self.bind('<Up>', self.move)
         self.bind('<Down>', self.move)
+        self.bind('<n>', self.move)
         self.bind('<a>', self.move)
 
         #  Outline of the gui
@@ -121,14 +122,27 @@ class GameGui(Tk):
         elif code == 8124162:
             self.game.move(Direction.Left)
         # Algorithm
+        # one next
+        elif code == 2949230:
+            if not self.algorithm:
+                self.algorithm = MinMax(self, self.game)
+            dir = self.algorithm.run()
+            self.game.move(dir)
+        # auto
         elif code == 97:
             if not self.algorithm:
                 self.algorithm = MinMax(self, self.game)
-            self.algorithm.run()
+            self.auto()
 
         self.draw(self.game.grid)
         self.score = Label(self, text=str(self.game.calculate_score()), font=("Helvetica", 32, "bold")).grid(row=0,
                                                                                                              column=1)
+
+    def auto(self):
+        dir = self.algorithm.run()
+        self.game.move(dir)
+        self.draw(self.game.grid)
+        self.after(200, lambda: self.auto())
 
 
 class MainMenu(Tk):

@@ -18,10 +18,7 @@ class MinMax():
             # Start
             root = TreeNode(self.state, None, 3)
             direc, var = root.get_move()
-
-            print var
-            self.game.move(direc)
-
+            return direc
         except Exception, err:
             eprint(err)
 
