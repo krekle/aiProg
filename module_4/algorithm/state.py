@@ -10,33 +10,50 @@ y_size = 4
 
 
 class State():
-    board = None
-    score = None
-
     def __init__(self, board):
+        self.score = None
         self.board = board
         # self.calculate_score() -> Dont calculate score for middle nodes
 
-    def calculate_score(self):
-        score = self.calculate_board_score(self.board)
-
-        # Highest tile on board
-        highest_tile = 0
-
-        # Number of free spaces > = more flexible later on
+    def free_tiles(self):
+        free = 0
+        highest_tile = 2
         for y in range(len(self.board)):
             for x in range(len(self.board[y])):
                 if self.board[y][x] == ' ':
-                    score += 3
+                    free += 1
                 else:
                     # Check highest tile
                     if self.board[y][x] > highest_tile:
                         highest_tile = self.board[y][x]
 
-        score += highest_tile * 1.5
+        return free, highest_tile
+
+
+    def calculate_score(self):
+        score = 0
+
+        # Highest til and Number of free spaces > = more flexible later on
+        free, highest_tile = self.free_tiles()
+        score += 20 * free
+        score += highest_tile * 5
 
         # check number of adjecent that can be combined next time
         # High tile with only 2 neighbours = corner
+
+        # Snake: Top left is worth the most
+        snake = [60, 35, 30, 25]
+        for i in range(len(snake)):
+            ch = self.board[0][i]
+            if str(ch).isdigit():
+                score += int(ch) * snake[i]
+
+        snake2 = [2, 4, 7, 12]
+        for k in range(len(snake2)):
+            ch = self.board[1][k]
+            if str(ch).isdigit():
+                score += int(ch) * snake2[k]
+
 
         # Save the score
         self.score = score
@@ -200,7 +217,6 @@ class TreeNode():
         self.parent = parent
         self.children = []
         self.this = this
-        self.deep = deep
         self.mx = mx
         self.choice = choice
 
@@ -213,7 +229,7 @@ class TreeNode():
             if mx:
                 kids = this.max_successors()
                 for key in kids.keys():
-                    self.children.append(TreeNode(kids[key], self, self.deep - 1, choice=key, mx=not self.mx))
+                    self.children.append(TreeNode(kids[key], self, deep - 1, choice=key, mx=not self.mx))
             else:
 
                 for child in this.min_successors():
@@ -234,6 +250,13 @@ class TreeNode():
             if child.score < min.score:
                 min = child
         return min
+
+    def get_avg(self):
+        # return min of children
+        sum = 0
+        for child in self.children:
+            sum += child.score
+        return sum/len(self.children)
 
     def get_max(self):
         # return max of children
@@ -261,10 +284,11 @@ class TreeNode():
             if self.mx:
                 return self.get_max().score
             else:
-                return self.get_min().score
+                #return self.get_min().score
+                return self.get_avg()
         else:
             return self.this.calculate_score()
 
     def __repr__(self):
-        return 'NodeScore: {score}, Level: {level}, Current: {this}'.format(score=str(self.score), level=str(self.deep),
+        return 'NodeScore: {score}, Current: {this}'.format(score=str(self.score),
                                                                             this=str(self.this))
