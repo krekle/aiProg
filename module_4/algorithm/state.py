@@ -18,8 +18,6 @@ class State():
         # self.calculate_score() -> Dont calculate score for middle nodes
 
     def calculate_score(self):
-
-        ## Add total score for whole board
         score = self.calculate_board_score(self.board)
 
         # Highest tile on board
@@ -38,33 +36,35 @@ class State():
         score += highest_tile * 1.5
 
         # check number of adjecent that can be combined next time
-        # Down/left is good
-
+        # High tile with only 2 neighbours = corner
 
         # Save the score
         self.score = score
         return self.score
 
     def max_successors(self):
+        d = dict()
+
         # Up
-        up = State(self.simulate_move(self.board, Direction.Up))
-        #print 'Up : score {score}'.format(score=up.score)
-        # up.pprint()
+        up_state = self.simulate_move(self.board, Direction.Up)
+        if up_state:
+            d['up'] = State(up_state)
+
         # Down
-        down = State(self.simulate_move(self.board, Direction.Down))
-        #print 'Down : score {score}'.format(score=down.score)
-        # down.pprint()
+        down_state = self.simulate_move(self.board, Direction.Down)
+        if down_state:
+            d['down'] = State(down_state)
+
         # Left
-        left = State(self.simulate_move(self.board, Direction.Left))
-        #print 'Left : score {score}'.format(score=left.score)
-        # left.pprint()
+        left_state = self.simulate_move(self.board, Direction.Left)
+        if left_state:
+            d['left'] = State(left_state)
 
         # Right
-        right = State(self.simulate_move(self.board, Direction.Right))
-        #print 'Right: score {score}'.format(score=right.score)
-        # right.pprint()
+        right_state = self.simulate_move(self.board, Direction.Right)
+        if right_state:
+            d['right'] = State(right_state)
 
-        d = {'up': up, 'down': down, 'left': left, 'right': right}
         return d
 
     def min_successors(self):
@@ -134,7 +134,11 @@ class State():
             for y in range(0, y_size):
                 new_board[y] = list(reversed(new_board[y]))
 
-        return new_board
+        if new_board == self.board:
+            # Nothing has happened
+            return None
+        else:
+            return new_board
 
     def calculate_board_score(self, external_board=None):
         board = None
@@ -190,7 +194,7 @@ class State():
             return 'State score: {score}'.format(score=self.score)
 
 
-class Node():
+class TreeNode():
 
     def __init__(self, this, parent, deep, choice=None, mx=True):
         self.parent = parent
@@ -209,11 +213,11 @@ class Node():
             if mx:
                 kids = this.max_successors()
                 for key in kids.keys():
-                    self.children.append(Node(kids[key], self, self.deep - 1, choice=key, mx=not self.mx))
+                    self.children.append(TreeNode(kids[key], self, self.deep - 1, choice=key, mx=not self.mx))
             else:
 
                 for child in this.min_successors():
-                    n = Node(child, self, deep - 1, not self.mx)
+                    n = TreeNode(child, self, deep - 1, not self.mx)
                     self.children.append(n)
 
 
@@ -227,7 +231,7 @@ class Node():
         for child in self.children:
             if min is None:
                 min = child
-            if child.score < min:
+            if child.score < min.score:
                 min = child
         return min
 
@@ -237,22 +241,29 @@ class Node():
         for child in self.children:
             if max is None:
                 max = child
-            if child.score > max:
+            if child.score > max.score:
                 max = child
         return max
 
     def get_move(self):
+        movement_state = None
         if self.mx:
-            return self.get_max()
+            movement_state = self.get_max()
         else:
-            return self.get_min()
+            movement_state =  self.get_min()
+
+        return Direction.get(movement_state.choice)
 
     def node_score(self):
         # Check if this is max or min dept
-        if self.mx:
-            return self.get_max().score
+
+        if len(self.children) > 0:
+            if self.mx:
+                return self.get_max().score
+            else:
+                return self.get_min().score
         else:
-            return self.get_min().score
+            return self.this.calculate_score()
 
     def __repr__(self):
         return 'NodeScore: {score}, Level: {level}, Current: {this}'.format(score=str(self.score), level=str(self.deep),

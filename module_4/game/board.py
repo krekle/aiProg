@@ -12,6 +12,17 @@ class Direction:
     Left = (0, -1)
     Right = (0, 1)
 
+    @staticmethod
+    def get(direction):
+        if direction == 'left':
+            return Direction.Left, 'left'
+        elif direction == 'right':
+            return Direction.Right, 'right'
+        elif direction == 'up':
+            return Direction.Up, 'up'
+        else:
+            return Direction.Down, 'down'
+
 
 class Game():
     grid = None
@@ -101,6 +112,8 @@ class Game():
         return res + [' '] * (n - len(res))
 
     def move(self, direction):
+        # For validating move
+        backup_board = copy.deepcopy(self.grid)
 
         # First Flip if Down or Right
         if direction == Direction.Down:
@@ -143,7 +156,15 @@ class Game():
             for y in range(0, self.y_size):
                 self.grid[y] = list(reversed(self.grid[y]))
 
-        self.place_random()
+        # If board is same before and after move, this move is illeagal
+        if self.grid == backup_board:
+            # TODO Check if board is full and game is over
+            self.grid = backup_board
+            return False
+        else:
+            # Place new random tile after successful move
+            self.place_random()
+            return True
 
     def calculate_score(self, external_board=None):
         board = None

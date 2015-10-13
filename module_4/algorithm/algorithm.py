@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from state import State, Node
+from state import State, TreeNode
 from traceback import print_exc as eprint
 __author__ = 'krekle'
 
@@ -13,12 +13,14 @@ class MinMax():
 
     def run(self):
         try:
+            # Create a state of the initial game
             self.state = State(self.game.grid)
-            root = Node(self.state, None, 3)
+            # Start
+            root = TreeNode(self.state, None, 3)
+            direc, var = root.get_move()
 
-            for n in root.children:
-                print n.choice
-                print n.score
+            print var
+            self.game.move(direc)
 
         except Exception, err:
             eprint(err)

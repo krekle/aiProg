@@ -122,7 +122,8 @@ class GameGui(Tk):
             self.game.move(Direction.Left)
         # Algorithm
         elif code == 97:
-            self.algorithm = MinMax(self, self.game)
+            if not self.algorithm:
+                self.algorithm = MinMax(self, self.game)
             self.algorithm.run()
 
         self.draw(self.game.grid)
