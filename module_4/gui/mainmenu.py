@@ -32,6 +32,7 @@ colors = {
 
 class GameGui(Tk):
     score = None
+    autorun = False
 
     def __init__(self, parent):
         Tk.__init__(self)
@@ -89,6 +90,7 @@ class GameGui(Tk):
         self.draw(self.game.grid)
 
     def draw(self, grid):
+        self.board.delete("all")
 
         for y in range(0, 4, 1):
             for x in range(0, 4, 1):
@@ -108,6 +110,9 @@ class GameGui(Tk):
                 # self.board.create_rectangle(left, top, right, bottom, fill=colors[grid[y][x]])
 
     def move(self, key, keycode=None):
+        # Stop autorun
+        self.autorun = False
+
         if keycode:
             code = keycode
         else:
@@ -132,17 +137,19 @@ class GameGui(Tk):
         elif code == 97:
             if not self.algorithm:
                 self.algorithm = MinMax(self, self.game)
+            self.autorun = True
             self.auto()
 
         self.draw(self.game.grid)
-        self.score = Label(self, text=str(self.game.calculate_score()), font=("Helvetica", 32, "bold")).grid(row=0,
-                                                                                                             column=1)
+        self.score = Label(self, text=str(self.game.calculate_score()), font=("Helvetica", 32, "bold")).grid(row=0, column=1)
 
     def auto(self):
         dir = self.algorithm.run()
         self.game.move(dir)
         self.draw(self.game.grid)
-        self.after(200, lambda: self.auto())
+        self.score = Label(self, text=str(self.game.calculate_score()), font=("Helvetica", 32, "bold")).grid(row=0, column=1)
+        if self.autorun:
+            self.after(10, lambda: self.auto())
 
 
 class MainMenu(Tk):
