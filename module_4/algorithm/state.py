@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import copy
-from module4.game.board import Direction
+from module_4.game.board import Direction, Game
 
 __author__ = 'krekle'
 
@@ -15,39 +15,81 @@ class State():
 
     def __init__(self, board):
         self.board = board
+        # self.calculate_score() -> Dont calculate score for middle nodes
 
     def calculate_score(self):
-        pass
 
-    def generate_successors(self):
+        ## Add total score for whole board
+        score = self.calculate_board_score(self.board)
 
+        # Highest tile on board
+        highest_tile = 0
+
+        # Number of free spaces > = more flexible later on
+        for y in range(len(self.board)):
+            for x in range(len(self.board[y])):
+                if self.board[y][x] == ' ':
+                    score += 3
+                else:
+                    # Check highest tile
+                    if self.board[y][x] > highest_tile:
+                        highest_tile = self.board[y][x]
+
+        score += highest_tile * 1.5
+
+        # check number of adjecent that can be combined next time
+        # Down/left is good
+
+
+        # Save the score
+        self.score = score
+        return self.score
+
+    def max_successors(self):
         # Up
-        up = self.simulate_move(self.board, Direction.Up)
-
+        up = State(self.simulate_move(self.board, Direction.Up))
+        #print 'Up : score {score}'.format(score=up.score)
+        # up.pprint()
         # Down
-        down = self.simulate_move(self.board, Direction.Down)
-
+        down = State(self.simulate_move(self.board, Direction.Down))
+        #print 'Down : score {score}'.format(score=down.score)
+        # down.pprint()
         # Left
-        left = self.simulate_move(self.board, Direction.Left)
+        left = State(self.simulate_move(self.board, Direction.Left))
+        #print 'Left : score {score}'.format(score=left.score)
+        # left.pprint()
 
         # Right
-        right = self.simulate_move(self.board, Direction.Right)
+        right = State(self.simulate_move(self.board, Direction.Right))
+        #print 'Right: score {score}'.format(score=right.score)
+        # right.pprint()
 
-        self.pprint(self.board)
-        print 'Up'
-        self.pprint(up)
-        print 'Down'
-        self.pprint(down)
-        print 'Left'
-        self.pprint(left)
-        print 'Right'
-        self.pprint(right)
-        print ''
+        d = {'up': up, 'down': down, 'left': left, 'right': right}
+        return d
 
+    def min_successors(self):
+        children = []
+        free_spots = []
+        for y in range(y_size):
+            for x in range(x_size):
+                if self.board[y][x] == ' ':
+                    free_spots.append((y, x))
 
-    def pprint(self, li):
-        for l in li:
-            print l
+        # Add states on the free spots, 2 and 4
+        for coord in free_spots:
+            # 2:
+            children.append(self.add_min_state(2, coord))
+            # 4:
+            children.append(self.add_min_state(4, coord))
+
+        return children
+
+    def add_min_state(self, value, coord):
+        # Method for adding a state with value at coordinate
+        new_board = copy.deepcopy(self.board)
+        new_board[coord[0]][coord[1]] = value
+        state = State(new_board)
+        return State(new_board)
 
     def simulate_move(self, board, direction):
         new_board = copy.deepcopy(board)
@@ -78,7 +120,6 @@ class State():
         # Horizontal Movement
         if direction == Direction.Left or direction == Direction.Right:
             for y in range(0, y_size):
-
                 # Set moved as new line
                 new_board[y] = self.move_line(new_board[y])
 
@@ -94,6 +135,21 @@ class State():
                 new_board[y] = list(reversed(new_board[y]))
 
         return new_board
+
+    def calculate_board_score(self, external_board=None):
+        board = None
+        if external_board:
+            board = external_board
+        else:
+            board = self.board
+        res = 0
+        for l in board:
+            r = copy.deepcopy(l)
+            while ' ' in r:
+                r.remove(' ')
+
+            res += sum(r)
+        return res
 
     def move_line(self, line):
 
@@ -122,3 +178,82 @@ class State():
 
         # Fill the end with empty values
         return res + [' '] * (n - len(res))
+
+    def pprint(self):
+        for line in self.board:
+            print line
+
+    def __repr__(self):
+        if not self.score:
+            return 'State score: {score}'.format(score=self.calculate_score())
+        else:
+            return 'State score: {score}'.format(score=self.score)
+
+
+class Node():
+
+    def __init__(self, this, parent, deep, choice=None, mx=True):
+        self.parent = parent
+        self.children = []
+        self.this = this
+        self.deep = deep
+        self.mx = mx
+        self.choice = choice
+
+        if deep == 0:
+            # If this is a leaf node
+            self.score = this.calculate_score()
+
+        else:
+            # If parent = None -> this is start State
+            if mx:
+                kids = this.max_successors()
+                for key in kids.keys():
+                    self.children.append(Node(kids[key], self, self.deep - 1, choice=key, mx=not self.mx))
+            else:
+
+                for child in this.min_successors():
+                    n = Node(child, self, deep - 1, not self.mx)
+                    self.children.append(n)
+
+
+            # Calculate the node score after adding all children
+            self.score = self.node_score()
+            # First max -> min
+
+    def get_min(self):
+        # return min of children
+        min = None
+        for child in self.children:
+            if min is None:
+                min = child
+            if child.score < min:
+                min = child
+        return min
+
+    def get_max(self):
+        # return max of children
+        max = None
+        for child in self.children:
+            if max is None:
+                max = child
+            if child.score > max:
+                max = child
+        return max
+
+    def get_move(self):
+        if self.mx:
+            return self.get_max()
+        else:
+            return self.get_min()
+
+    def node_score(self):
+        # Check if this is max or min dept
+        if self.mx:
+            return self.get_max().score
+        else:
+            return self.get_min().score
+
+    def __repr__(self):
+        return 'NodeScore: {score}, Level: {level}, Current: {this}'.format(score=str(self.score), level=str(self.deep),
+                                                                            this=str(self.this))

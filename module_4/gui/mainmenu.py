@@ -6,8 +6,8 @@ from Tkconstants import S, E, W, N
 from Tkinter import Tk, Frame, Label, Button, Toplevel, Canvas, StringVar
 from functools import partial
 import random
-from module4.algorithm.algorithm import MinMax
-from module4.game.board import Game, Direction
+from module_4.algorithm.algorithm import MinMax
+from module_4.game.board import Game, Direction
 
 __author__ = 'krekle'
 
@@ -146,7 +146,7 @@ class MainMenu(Tk):
         self.attributes('-topmost', True)
         self.attributes('-topmost', False)
 
-        btn = Button(self, text="Open Frame", command=self.openGameFrame)
+        btn = Button(self, text="Start Game", command=self.openGameFrame)
         btn.pack()
 
     def hide(self):

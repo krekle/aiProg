@@ -145,11 +145,16 @@ class Game():
 
         self.place_random()
 
-    def calculate_score(self):
+    def calculate_score(self, external_board=None):
+        board = None
+        if external_board:
+            board = external_board
+        else:
+            board = self.grid
         res = 0
-        for l in self.grid:
+        for l in board:
             r = copy.deepcopy(l)
-            while (' ' in r):
+            while ' ' in r:
                 r.remove(' ')
 
             res += sum(r)
