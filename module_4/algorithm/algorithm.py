@@ -18,10 +18,10 @@ class MinMax():
 
             free, highest = self.state.free_tiles()
             # Run the algorithm one step
-            if free <= 6:
+            if free <=4:
                 root = TreeNode(self.state, None, 5)
-            elif free <=4:
-                root = TreeNode(self.state, None, 7)
+            elif free <= 6:
+                root = TreeNode(self.state, None, 4)
             else:
                 root = TreeNode(self.state, None, 3)
 
