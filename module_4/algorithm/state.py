@@ -31,32 +31,45 @@ class State():
 
 
     def calculate_score(self):
+
+        #print '--------------- Score -----------------'
         score = 0
 
         # Highest til and Number of free spaces > = more flexible later on
         free, highest_tile = self.free_tiles()
-        score += 20 * free
+        score += 100 * free
         score += highest_tile * 5
 
+        #print 'Free Tiles: '
+        #print 200*free
+
+        #print 'Highest Tile: '
+        #print highest_tile*5
+
         # check number of adjecent that can be combined next time
-        # High tile with only 2 neighbours = corner
 
         # Snake: Top left is worth the most
-        snake = [60, 35, 30, 25]
-        for i in range(len(snake)):
-            ch = self.board[0][i]
-            if str(ch).isdigit():
-                score += int(ch) * snake[i]
+        snake_h = [[50, 34, 32, 27], [2, 4, 7, 15]] # -> only two first rows
+        for i in range(len(snake_h)):
+            for h in range(len(snake_h[i])):
+                ch = self.board[i][h]
+                if str(ch).isdigit():
+                    score += int(ch) * snake_h[i][h]
 
-        snake2 = [2, 4, 7, 12]
-        for k in range(len(snake2)):
-            ch = self.board[1][k]
-            if str(ch).isdigit():
-                score += int(ch) * snake2[k]
+        # Descending first row
+        if not ' ' in self.board[0] and self.board[0] == sorted(self.board[0], key=int, reverse=True):
+            score *= 1.15
 
+        # Blocking 5th snake value
+        if self.board[1][x_size-1] > self.board[0][x_size-1]:
+            pass
+            #score *= 0.85
 
         # Save the score
         self.score = score
+        #print 'Total'
+        #print score
+        #print '------------ End Score -----------------'
         return self.score
 
     def max_successors(self):
@@ -209,86 +222,3 @@ class State():
             return 'State score: {score}'.format(score=self.calculate_score())
         else:
             return 'State score: {score}'.format(score=self.score)
-
-
-class TreeNode():
-
-    def __init__(self, this, parent, deep, choice=None, mx=True):
-        self.parent = parent
-        self.children = []
-        self.this = this
-        self.mx = mx
-        self.choice = choice
-
-        if deep == 0:
-            # If this is a leaf node
-            self.score = this.calculate_score()
-
-        else:
-            # If parent = None -> this is start State
-            if mx:
-                kids = this.max_successors()
-                for key in kids.keys():
-                    self.children.append(TreeNode(kids[key], self, deep - 1, choice=key, mx=not self.mx))
-            else:
-
-                for child in this.min_successors():
-                    n = TreeNode(child, self, deep - 1, not self.mx)
-                    self.children.append(n)
-
-
-            # Calculate the node score after adding all children
-            self.score = self.node_score()
-            # First max -> min
-
-    def get_min(self):
-        # return min of children
-        min = None
-        for child in self.children:
-            if min is None:
-                min = child
-            if child.score < min.score:
-                min = child
-        return min
-
-    def get_avg(self):
-        # return min of children
-        sum = 0
-        for child in self.children:
-            sum += child.score
-        return sum/len(self.children)
-
-    def get_max(self):
-        # return max of children
-        max = None
-        for child in self.children:
-            if max is None:
-                max = child
-            if child.score > max.score:
-                max = child
-        return max
-
-    def get_move(self):
-        movement_state = None
-        if self.mx:
-            movement_state = self.get_max()
-        else:
-            movement_state =  self.get_min()
-
-        return Direction.get(movement_state.choice)
-
-    def node_score(self):
-        # Check if this is max or min dept
-
-        if len(self.children) > 0:
-            if self.mx:
-                return self.get_max().score
-            else:
-                #return self.get_min().score
-                return self.get_avg()
-        else:
-            return self.this.calculate_score()
-
-    def __repr__(self):
-        return 'NodeScore: {score}, Current: {this}'.format(score=str(self.score),
-                                                                            this=str(self.this))
