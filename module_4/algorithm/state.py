@@ -32,45 +32,33 @@ class State():
 
     def calculate_score(self):
 
-        #print '--------------- Score -----------------'
         score = 0
 
         # Highest til and Number of free spaces > = more flexible later on
         free, highest_tile = self.free_tiles()
-        score += 100 * free
+        score += 30 * free
         score += highest_tile * 5
 
-        #print 'Free Tiles: '
-        #print 200*free
-
-        #print 'Highest Tile: '
-        #print highest_tile*5
-
         # check number of adjecent that can be combined next time
+        # High tile with only 2 neighbours = corner
 
         # Snake: Top left is worth the most
-        snake_h = [[50, 34, 32, 27], [2, 4, 7, 15]] # -> only two first rows
-        for i in range(len(snake_h)):
-            for h in range(len(snake_h[i])):
-                ch = self.board[i][h]
-                if str(ch).isdigit():
-                    score += int(ch) * snake_h[i][h]
+        snake = [60, 35, 30, 25]
+        for i in range(len(snake)):
+            ch = self.board[0][i]
+            if str(ch).isdigit():
+                score += int(ch) * snake[i]
 
-        # Descending first row
-        if not ' ' in self.board[0] and self.board[0] == sorted(self.board[0], key=int, reverse=True):
-            score *= 1.15
-
-        # Blocking 5th snake value
-        if self.board[1][x_size-1] > self.board[0][x_size-1]:
-            pass
-            #score *= 0.85
+        snake2 = [2, 4, 6, 13]
+        for k in range(len(snake2)):
+            ch = self.board[1][k]
+            if str(ch).isdigit():
+                score += int(ch) * snake2[k]
 
         # Save the score
         self.score = score
-        #print 'Total'
-        #print score
-        #print '------------ End Score -----------------'
         return self.score
+
 
     def max_successors(self):
         d = dict()
