@@ -145,6 +145,12 @@ class GameGui(Tk):
 
     def auto(self):
         dir = self.algorithm.run()
+
+        # No direction returned, game over
+        if not dir:
+            self.autorun = False
+            return
+
         self.game.move(dir)
         self.draw(self.game.grid)
         self.score = Label(self, text=str(self.game.calculate_score()), font=("Helvetica", 32, "bold")).grid(row=0, column=1)
