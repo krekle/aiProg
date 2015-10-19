@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import copy
-from module_4.game.board import Direction, Game
+from game.board import Direction, Game
 
 __author__ = 'krekle'
 
@@ -43,17 +43,34 @@ class State():
         # High tile with only 2 neighbours = corner
 
         # Snake: Top left is worth the most
-        snake = [60, 35, 30, 25]
+        snake = [60, 40, 25, 10]
         for i in range(len(snake)):
             ch = self.board[0][i]
             if str(ch).isdigit():
                 score += int(ch) * snake[i]
 
-        snake2 = [2, 4, 6, 13]
+        snake2 = [40, 25, 10, 1]
         for k in range(len(snake2)):
             ch = self.board[1][k]
             if str(ch).isdigit():
                 score += int(ch) * snake2[k]
+
+        snake3 = [25, 10, 1, 1]
+        for j in range(len(snake3)):
+            ch = self.board[2][j]
+            if str(ch).isdigit():
+                score += int(ch) * snake2[j]
+
+        snake4 = [10, 1, 1, 1]
+        for h in range(len(snake4)):
+            ch = self.board[3][h]
+            if str(ch).isdigit():
+                score += int(ch) * snake2[h]
+
+
+        # Hard penalty for lose game
+        if free == 0:
+            score = 0
 
         # Save the score
         self.score = score

@@ -1,4 +1,4 @@
-from module_4.game.board import Direction
+from game.board import Direction
 
 
 class TreeNode():

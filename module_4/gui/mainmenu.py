@@ -6,8 +6,8 @@ from Tkconstants import S, E, W, N
 from Tkinter import Tk, Frame, Label, Button, Toplevel, Canvas, StringVar
 from functools import partial
 import random
-from module_4.algorithm.algorithm import MinMax
-from module_4.game.board import Game, Direction
+from game.board import Game, Direction
+from algorithm.algorithm import MinMax
 
 __author__ = 'krekle'
 
