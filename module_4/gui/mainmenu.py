@@ -135,7 +135,6 @@ class GameGui(Tk):
                 self.algorithm = MinMax(self, self.game)
             dir, highest = self.algorithm.run()
             self.game.move(dir)
-            gameOver('test', self)
         # auto
         elif code == 97 or code == 65:
             if not self.algorithm:
@@ -170,7 +169,7 @@ def gameOver(points, game):
     toplevel = Toplevel(game, width=200)
     label1 = Label(toplevel, text='Game Over', font=("Helvetica", 14, "bold"), height=0, width=100)
     label1.pack()
-    label2 = Label(toplevel, text=points, font=("Helvetica", 12), height=0, width=100)
+    label2 = Label(toplevel, text='Highest tile ' + str(points), font=("Helvetica", 12), height=0, width=100)
     label2.pack()
     btn = Button(toplevel, text="End Game", command=partial(game.parent.openMenuFrame, game))
     btn.pack()
