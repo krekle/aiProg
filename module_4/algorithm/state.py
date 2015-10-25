@@ -39,8 +39,6 @@ class State():
         score += 30 * free
         score += highest_tile * 5
 
-        # check number of adjecent that can be combined next time
-        # High tile with only 2 neighbours = corner
 
         # Snake: Top left is worth the most
         snake = [60, 35, 30, 25]
@@ -54,6 +52,10 @@ class State():
             ch = self.board[1][k]
             if str(ch).isdigit():
                 score += int(ch) * snake2[k]
+
+        # If game is over state is BAAD
+        if free is 0:
+            score = 0
 
         # Save the score
         self.score = score
