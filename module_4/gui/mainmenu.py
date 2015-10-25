@@ -3,7 +3,7 @@
 
 from Tkconstants import S, E, W, N
 
-from Tkinter import Tk, Frame, Label, Button, Toplevel, Canvas, StringVar
+from Tkinter import Tk, Frame, Label, Button, Toplevel, Canvas, StringVar, CENTER
 from functools import partial
 import random
 from module_4.algorithm.algorithm import MinMax
@@ -59,7 +59,7 @@ class GameGui(Tk):
         self.bind('<n>', self.move)
         self.bind('<a>', self.move)
 
-        #  Outline of the gui
+        # Outline of the gui
         #########################
         ##  Game Score here    ##
         #########################
@@ -70,8 +70,8 @@ class GameGui(Tk):
 
         ## Score ##
 
-        self.score_label = Label(self, text='Score', font=("Helvetica", 32, "bold")).grid(row=0, column=0, padx=20,
-                                                                                          pady=20)
+        self.score_label = Label(self, text='Sum', font=("Helvetica", 32, "bold")).grid(row=0, column=0, padx=20,
+                                                                                        pady=20)
         self.score = Label(self, text="0", font=("Helvetica", 32, "bold")).grid(row=0, column=1)
 
         ## Board ##
@@ -80,10 +80,12 @@ class GameGui(Tk):
         self.board.grid(row=1, column=0, columnspan=2, sticky=E + W, padx=10, pady=10)
 
         ## Menu ##
-        btn = Button(self, text="Close", command=partial(parent.openMenuFrame, self))
-        btn.grid(row=2, column=0)
+        how_to = Label(self, text='Move with arrow keys \n <a> to auto-run \n <n> to jump one step',
+                       font=("Helvetica", 8)).grid(row=2, column=0)
+        #btn = Button(self, text="Close", command=partial(parent.openMenuFrame, self))
+        #btn.grid(row=2, column=0)
 
-        btn = Button(self, text="Close", command=partial(parent.openMenuFrame, self))
+        btn = Button(self, text="End Game", command=partial(parent.openMenuFrame, self))
         btn.grid(row=2, column=1)
 
         # Draw the initial grid
@@ -118,44 +120,60 @@ class GameGui(Tk):
         else:
             code = key.keycode
 
-        if code == 8320768:
+        if code == 8320768 or code == 38:
             self.game.move(Direction.Up)
-        elif code == 8189699:
+        elif code == 8189699 or code == 39:
             self.game.move(Direction.Right)
-        elif code == 8255233:
+        elif code == 8255233 or code == 40:
             self.game.move(Direction.Down)
-        elif code == 8124162:
+        elif code == 8124162 or code == 37:
             self.game.move(Direction.Left)
         # Algorithm
         # one next
-        elif code == 2949230:
+        elif code == 2949230 or code == 78:
             if not self.algorithm:
                 self.algorithm = MinMax(self, self.game)
-            dir = self.algorithm.run()
+            dir, highest = self.algorithm.run()
             self.game.move(dir)
+            gameOver('test', self)
         # auto
-        elif code == 97:
+        elif code == 97 or code == 65:
             if not self.algorithm:
                 self.algorithm = MinMax(self, self.game)
             self.autorun = True
             self.auto()
 
         self.draw(self.game.grid)
-        self.score = Label(self, text=str(self.game.calculate_score()), font=("Helvetica", 32, "bold")).grid(row=0, column=1)
+        self.score = Label(self, text=str(self.game.calculate_score()), font=("Helvetica", 32, "bold")).grid(row=0,
+                                                                                                             column=1)
 
     def auto(self):
-        dir = self.algorithm.run()
+        dir, highest = self.algorithm.run()
 
         # No direction returned, game over
         if not dir:
             self.autorun = False
+            print 'Game over!'
+            print self.score
+            gameOver(highest, self)
             return
 
         self.game.move(dir)
         self.draw(self.game.grid)
-        self.score = Label(self, text=str(self.game.calculate_score()), font=("Helvetica", 32, "bold")).grid(row=0, column=1)
+        self.score = Label(self, text=str(self.game.calculate_score()), font=("Helvetica", 32, "bold")).grid(row=0,
+                                                                                                             column=1)
         if self.autorun:
             self.after(10, lambda: self.auto())
+
+
+def gameOver(points, game):
+    toplevel = Toplevel(game, width=200)
+    label1 = Label(toplevel, text='Game Over', font=("Helvetica", 14, "bold"), height=0, width=100)
+    label1.pack()
+    label2 = Label(toplevel, text=points, font=("Helvetica", 12), height=0, width=100)
+    label2.pack()
+    btn = Button(toplevel, text="End Game", command=partial(game.parent.openMenuFrame, game))
+    btn.pack()
 
 
 class MainMenu(Tk):
@@ -175,6 +193,7 @@ class MainMenu(Tk):
         self.attributes('-topmost', False)
 
         btn = Button(self, text="Start Game", command=self.openGameFrame)
+        btn.place(in_=self, anchor="c", relx=.5, rely=.5)
         btn.pack()
 
     def hide(self):
