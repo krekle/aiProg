@@ -22,12 +22,12 @@ class MinMax():
             # Run the algorithm one step
             if free <= 1:
                 root = TreeNode(self.state, None, 7)
-            if free <= 2:
+            elif free <= 2:
                 root = TreeNode(self.state, None, 5)
-            elif free <= 6:
-                root = TreeNode(self.state, None, 4)
             else:
                 root = TreeNode(self.state, None, 3)
+
+            #root = TreeNode(self.state, None, 4)
 
             # Chose dept depentdent on free tiles
             direc, way = root.get_move()

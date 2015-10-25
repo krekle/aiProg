@@ -42,7 +42,7 @@ class GameGui(Tk):
         self.title("2048")
 
         # Geometry
-        self.geometry("{0}x{1}+0+0".format((self.winfo_screenwidth() / 2) - 300, (self.winfo_screenheight() / 2) + 200))
+        self.geometry("{0}x{1}+0+0".format(545, (self.winfo_screenheight() / 2) + 200))
         self.columnconfigure(1, weight=5)
 
         # Game
@@ -134,6 +134,7 @@ class GameGui(Tk):
             if not self.algorithm:
                 self.algorithm = MinMax(self, self.game)
             dir, highest = self.algorithm.run()
+            gameOver(highest, self)
             self.game.move(dir)
         # auto
         elif code == 97 or code == 65:
@@ -167,20 +168,22 @@ class GameGui(Tk):
 
 def gameOver(points, game):
     toplevel = Toplevel(game, width=200)
+    toplevel.geometry("%dx%d%+d%+d" % (200, 200, 200, 200))
     label1 = Label(toplevel, text='Game Over', font=("Helvetica", 14, "bold"), height=0, width=100)
     label1.pack()
     label2 = Label(toplevel, text='Highest tile ' + str(points), font=("Helvetica", 12), height=0, width=100)
     label2.pack()
-    btn = Button(toplevel, text="End Game", command=partial(game.parent.openMenuFrame, game))
-    btn.pack()
-
+    btn_end = Button(toplevel, text="End Game", command=partial(game.parent.openMenuFrame, game))
+    btn_end.pack()
+    btn_new = Button(toplevel, text="New Game", command=partial(game.parent.openGameFrame))
+    btn_new.pack()
 
 class MainMenu(Tk):
     def __init__(self, *args, **kwargs):
         Tk.__init__(self, *args, **kwargs)
 
         # Force fullscreen
-        self.geometry("{0}x{1}+0+0".format(self.winfo_screenwidth() / 3, self.winfo_screenheight() / 2))
+        self.geometry("{0}x{1}+0+0".format(self.winfo_screenwidth() / 4, (self.winfo_screenheight() / 2)-100))
 
         # Set the title
         self.title("AI-Prog Module 1 - Kristian Ekle & Thor Håkon")
