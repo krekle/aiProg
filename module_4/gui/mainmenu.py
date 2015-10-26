@@ -81,7 +81,7 @@ class GameGui(Tk):
 
         ## Menu ##
         how_to = Label(self, text='Move with arrow keys \n <a> to auto-run \n <n> to jump one step',
-                       font=("Helvetica", 8)).grid(row=2, column=0)
+                       font=("Helvetica", 12)).grid(row=2, column=0, padx=20, pady=20)
         #btn = Button(self, text="Close", command=partial(parent.openMenuFrame, self))
         #btn.grid(row=2, column=0)
 
@@ -134,7 +134,6 @@ class GameGui(Tk):
             if not self.algorithm:
                 self.algorithm = MinMax(self, self.game)
             dir, highest = self.algorithm.run()
-            gameOver(highest, self)
             self.game.move(dir)
         # auto
         elif code == 97 or code == 65:
