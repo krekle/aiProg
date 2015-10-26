@@ -89,18 +89,14 @@ class State():
 
     def min_successors(self):
         children = []
-        free_spots = []
         for y in range(y_size):
             for x in range(x_size):
                 if self.board[y][x] == ' ':
-                    free_spots.append((y, x))
-
-        # Add states on the free spots, 2 and 4
-        for coord in free_spots:
-            # 2:
-            children.append(self.add_min_state(2, coord))
-            # 4:
-            children.append(self.add_min_state(4, coord))
+                    # Add states on the free spots, 2 and 4
+                    # 2:
+                    children.append(self.add_min_state(2, (y, x)))
+                    # 4:
+                    children.append(self.add_min_state(4, (y, x)))
 
         return children
 
