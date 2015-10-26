@@ -10,9 +10,10 @@ y_size = 4
 
 
 class State():
-    def __init__(self, board):
+    def __init__(self, board, generated=None):
         self.score = None
         self.board = board
+        self.generated = generated
         # self.calculate_score() -> Dont calculate score for middle nodes
 
     def free_tiles(self):
@@ -29,16 +30,18 @@ class State():
 
         return free, highest_tile
 
-
     def calculate_score(self):
-
         score = 0
+
+        ########  BASIC ##########
 
         # Highest til and Number of free spaces > = more flexible later on
         free, highest_tile = self.free_tiles()
         score += 30 * free
         score += highest_tile * 5
 
+
+        ########  SNAKE ##########
 
         # Snake: Top left is worth the most
         snake = [60, 35, 30, 25]
@@ -53,14 +56,20 @@ class State():
             if str(ch).isdigit():
                 score += int(ch) * snake2[k]
 
+
+        ########  GAME OVER ##########
         # If game is over state is BAAD
         if free is 0:
             score = 0
 
         # Save the score
-        self.score = score
-        return self.score
+        # Multiply with chance (for 4, or 2 tile)
+        if self.generated is 4:
+            self.score = score * 0.1
+        else:
+            self.score = score * 0.9
 
+        return self.score
 
     def max_successors(self):
         d = dict()
@@ -104,8 +113,8 @@ class State():
         # Method for adding a state with value at coordinate
         new_board = copy.deepcopy(self.board)
         new_board[coord[0]][coord[1]] = value
-        state = State(new_board)
-        return State(new_board)
+        state = State(new_board, generated=value)
+        return state
 
     def simulate_move(self, board, direction):
         new_board = copy.deepcopy(board)
@@ -142,16 +151,14 @@ class State():
 
         # Flip back again if Down or Right
         if direction == Direction.Down:
-            # reverse whole and use UP logic
             new_board = list(reversed(new_board))
 
         if direction == Direction.Right:
-            # flip each y to use LEFT logic
             for y in range(0, y_size):
                 new_board[y] = list(reversed(new_board[y]))
 
         if new_board == self.board:
-            # Nothing has happened
+            # Nothing has happened, not a legal move
             return None
         else:
             return new_board

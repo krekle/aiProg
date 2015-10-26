@@ -22,7 +22,7 @@ class MinMax():
             # Run the algorithm one step
             if free <= 1:
                 root = TreeNode(self.state, None, 7)
-            elif free <= 2:
+            elif free <= 3:
                 root = TreeNode(self.state, None, 5)
             else:
                 root = TreeNode(self.state, None, 3)
