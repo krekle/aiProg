@@ -37,7 +37,7 @@ class State():
 
         # Highest til and Number of free spaces > = more flexible later on
         free, highest_tile = self.free_tiles()
-        score += 30 * free if highest_tile > 1000 else 30*free + free*(highest_tile*0.1)
+        score += 30 * free if highest_tile > 1000 else 30*free + free*(highest_tile*0.1) #  30*free + free*(highest_tile/4)
         score += highest_tile * 5
 
 
