@@ -42,7 +42,7 @@ class GameGui(Tk):
         self.title("2048")
 
         # Geometry
-        self.geometry("{0}x{1}+0+0".format(545, (self.winfo_screenheight() / 2) + 200))
+        self.geometry("{0}x{1}+0+0".format(545, (self.winfo_screenheight() / 2) + 250))
         self.columnconfigure(1, weight=5)
 
         # Game
@@ -71,22 +71,27 @@ class GameGui(Tk):
         ## Score ##
 
         self.score_label = Label(self, text='Sum', font=("Helvetica", 32, "bold")).grid(row=0, column=0, padx=20,
-                                                                                        pady=20)
+                                                                                        pady=0)
         self.score = Label(self, text="0", font=("Helvetica", 32, "bold")).grid(row=0, column=1)
+
+        self.move = 0
+        self.moves_label = Label(self, text='Moves', font=("Helvetica", 32, "bold")).grid(row=1, column=0, padx=20,
+                                                                                          pady=0)
+        self.moves = Label(self, text="0", font=("Helvetica", 32, "bold")).grid(row=1, column=1)
 
         ## Board ##
         self.board = Canvas(self, width=(self.winfo_screenwidth() / 2) - 400, height=(self.winfo_screenheight() / 2),
                             highlightthickness=0, borderwidth=0)
-        self.board.grid(row=1, column=0, columnspan=2, sticky=E + W, padx=10, pady=10)
+        self.board.grid(row=2, column=0, columnspan=2, sticky=E + W, padx=10, pady=10)
 
         ## Menu ##
         how_to = Label(self, text='Move with arrow keys \n <a> to auto-run \n <n> to jump one step',
-                       font=("Helvetica", 12)).grid(row=2, column=0, padx=20, pady=20)
-        #btn = Button(self, text="Close", command=partial(parent.openMenuFrame, self))
-        #btn.grid(row=2, column=0)
+                       font=("Helvetica", 12)).grid(row=3, column=0, padx=20, pady=20)
+        # btn = Button(self, text="Close", command=partial(parent.openMenuFrame, self))
+        # btn.grid(row=2, column=0)
 
         btn = Button(self, text="End Game", command=partial(parent.openMenuFrame, self))
-        btn.grid(row=2, column=1)
+        btn.grid(row=3, column=1, padx=20, pady=20)
 
         # Draw the initial grid
         self.draw(self.game.grid)
@@ -158,11 +163,16 @@ class GameGui(Tk):
             return
 
         self.game.move(dir)
+
         self.draw(self.game.grid)
+
+        #Update labels
         self.score = Label(self, text=str(self.game.calculate_score()), font=("Helvetica", 32, "bold")).grid(row=0,
                                                                                                              column=1)
+        self.move += 1
+        self.moves = Label(self, text=str(self.move), font=("Helvetica", 32, "bold")).grid(row=1, column=1)
         if self.autorun:
-            self.after(10, lambda: self.auto())
+            self.after(1, lambda: self.auto())
 
 
 def gameOver(points, game):
@@ -177,12 +187,13 @@ def gameOver(points, game):
     btn_new = Button(toplevel, text="New Game", command=partial(game.parent.openGameFrame))
     btn_new.pack()
 
+
 class MainMenu(Tk):
     def __init__(self, *args, **kwargs):
         Tk.__init__(self, *args, **kwargs)
 
         # Force fullscreen
-        self.geometry("{0}x{1}+0+0".format(self.winfo_screenwidth() / 4, (self.winfo_screenheight() / 2)-100))
+        self.geometry("{0}x{1}+0+0".format(self.winfo_screenwidth() / 4, (self.winfo_screenheight() / 2) - 100))
 
         # Set the title
         self.title("AI-Prog Module 1 - Kristian Ekle & Thor Håkon")
@@ -193,9 +204,13 @@ class MainMenu(Tk):
         self.attributes('-topmost', True)
         self.attributes('-topmost', False)
 
-        btn = Button(self, text="Start Game", command=self.openGameFrame)
+        btn = Button(self, text="Start Game", font=("Helvetica", 22, "bold"),  width=10, command=self.openGameFrame)
         btn.place(in_=self, anchor="c", relx=.5, rely=.5)
-        btn.pack()
+        btn.pack(pady=50)
+
+        btn_quit = Button(self, text="Quit", font=("Helvetica", 22, "bold"), width=10, command=self.destroy)
+        btn_quit.place(in_=self, anchor="c", relx=.5, rely=.5)
+        btn_quit.pack()
 
     def hide(self):
         self.withdraw()
