@@ -5,11 +5,8 @@ from module_5.basics import mnist_basics as mnist
 
 
 class NeuralNetwork(object):
-    def floatX(self, x):
-        return np.asarray(x, dtype=theano.config.floatX)
-
     def gen_weights(self, shape):
-        return theano.shared(self.floatX(np.random.randn(*shape) * 0.01))
+        return theano.shared(np.random.randn(*shape) * 0.01)
 
     ##### Activation Functions #####
     def sigmoid(self, x, w):
@@ -24,17 +21,19 @@ class NeuralNetwork(object):
     # Black box of computation
     # This is where the activation functions are applied
     # Represents what happens in a neuron
-    def model(self, X, w_h, w_o):
+    def model(self, X, w_h, w_h2, w_o):
         # Input to hidden -> Activation method (sigmoid) Layer 1
-        h = self.sigmoid(X, w_h)
+        hidden1 = self.sigmoid(X, w_h)
 
-        # Add more layers here
+        # Add more layers here #
+        hidden2 = self.rectify(T.dot(hidden1, w_h2))  # Activation method (rectify) Layer 2
 
         # Hidden to output -> Cost function (softmax) Last Layer
-        pyx = self.soft(h, w_o)
+        pyx = self.soft(hidden2, w_o)
         return pyx
 
     ## Cost function Stochastic Gradient Decent
+    ## This is the function to minimize
     def sgd(self, cost, params, lr=0.05):
         gradients = T.grad(cost=cost, wrt=params)
         updates = []
@@ -56,16 +55,18 @@ class NeuralNetwork(object):
         Y = T.matrix()
 
         ### Synapse Weights ###
-        w_h = self.gen_weights((784, 625))
-        w_o = self.gen_weights((625, 10))
+        weight_hidden = self.gen_weights((784, 625))
+        weight_hidden2 = self.gen_weights((625, 325))
+        weight_output = self.gen_weights((325, 10))
 
         ### Init model ##
-        py_x = self.model(X, w_h=w_h, w_o=w_o)
+        ## Probability outputs and maxima predictions
+        py_x = self.model(X, w_h=weight_hidden, w_h2=weight_hidden2, w_o=weight_output)
         y_x = T.argmax(py_x, axis=1)
 
-        # Start
+        ## Classification metrix to optimize
         cost = T.mean(T.nnet.categorical_crossentropy(py_x, Y))
-        params = [w_h, w_o]  # the weights
+        params = [weight_hidden, weight_hidden2, weight_output]  # the weights
 
         # Evaluate updates for weights
         updates = self.sgd(cost, params)
@@ -74,12 +75,17 @@ class NeuralNetwork(object):
         predict = theano.function(inputs=[X], outputs=y_x, allow_input_downcast=True)
 
         ### Run
+        epochs = 20
+        number_from_each_class = 128
+        for i in range(epochs):
 
-        for i in range(10):
-            for start, end in zip(range(0, len(trX), 128), range(128, len(trX), 128)):
+            for start, end in zip(range(0, len(trX), number_from_each_class),
+                                  range(number_from_each_class, len(trX), number_from_each_class)):
                 cost = train(trX[start:end], trY[start:end])
-                print(cost)
-        print(np.mean(np.argmax(teY, axis=1) == predict(teX)))
+
+            print(u" ")
+            print(u"Accuracy:")
+            print(i, np.mean(np.argmax(teY, axis=1) == predict(teX)))
 
 
 ann = NeuralNetwork()
