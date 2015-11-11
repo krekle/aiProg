@@ -22,8 +22,9 @@ class NeuralNetwork(object):
     # This is where the activation functions are applied
     # Represents what happens in a neuron
     def model(self, X, w_h, w_h2, w_o):
+        print(w_h)
         # Input to hidden -> Activation method (sigmoid) Layer 1
-        hidden1 = self.sigmoid(X, w_h)
+        hidden1 = self.rectify(T.dot(X, w_h))
 
         # Add more layers here #
         hidden2 = self.rectify(T.dot(hidden1, w_h2))  # Activation method (rectify) Layer 2
@@ -55,9 +56,10 @@ class NeuralNetwork(object):
         Y = T.matrix()
 
         ### Synapse Weights ###
+        ### number of input to number of output
         weight_hidden = self.gen_weights((784, 625))
-        weight_hidden2 = self.gen_weights((625, 325))
-        weight_output = self.gen_weights((325, 10))
+        weight_hidden2 = self.gen_weights((625, 625))
+        weight_output = self.gen_weights((625, 10))
 
         ### Init model ##
         ## Probability outputs and maxima predictions
@@ -68,7 +70,7 @@ class NeuralNetwork(object):
         cost = T.mean(T.nnet.categorical_crossentropy(py_x, Y))
         params = [weight_hidden, weight_hidden2, weight_output]  # the weights
 
-        # Evaluate updates for weights
+        # Cost funtion
         updates = self.sgd(cost, params)
 
         train = theano.function(inputs=[X, Y], outputs=cost, updates=updates, allow_input_downcast=True)
@@ -86,6 +88,7 @@ class NeuralNetwork(object):
             print(u" ")
             print(u"Accuracy:")
             print(i, np.mean(np.argmax(teY, axis=1) == predict(teX)))
+
 
 
 ann = NeuralNetwork()
