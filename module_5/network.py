@@ -76,18 +76,18 @@ class ANN():
     def dynamic_model(self, inWeight, weights):
 
         # Output weight and node
-        w_o = weights.pop(-1)
+       # w_o = weights.pop(-1)
 
         # Dynamic amount of hidden layers
         hiddens = []
-        for i in range(0, len(weights)):
+        for i in range(0, len(weights) -1):
             if i == 0:
                 hiddens.append(self.rectify(T.dot(inWeight, weights[i])))
             else:
                 hiddens.append(self.rectify(T.dot(hiddens[i - 1], weights[i])))
 
         # Hidden to output -> Cost function (softmax) Last Layer
-        pyx = self.soft(hiddens[-1], w_o)
+        pyx = self.soft(hiddens[-1], weights[-1])
         return pyx
 
     def no_dynamic_model(self, X, w_h, w_h2, w_o):
