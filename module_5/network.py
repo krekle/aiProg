@@ -287,36 +287,34 @@ class ANN():
 print(__name__)
 
 if __name__ == "__main__":
-    print('########################################')
-    print('##       Starting Neural Network      ##')
-    print('########################################')
-    print('')
+    print('############################################################')
+    print('##                 Starting Neural Network                ##')
+    print('############################################################')
+    print('#')
     ann = ANN(nodes=[784, 625, 10])
-    print('Network started with nodes: 784, 625, 10')
-    print('You now have control of the neural \n '
-          'network object ref: ann')
-    print('')
-    print('########################################')
-    print('To start with different layers declare \n'
-          ' a new ANN(nodes=[x, y, z]) or pass \n'
-          ' command line arguments')
-    print('########################################')
-    print('')
-    print('########################################')
-    print('To start training type \n'
-          ' ann.training(epochs=[20], batch=[128], \n'
-          ' verbose_level=[1])')
+    print('# Network started with layers: 784, 625, 10 You now have \n'
+          '# control of the neural network object ref: ann')
+    print('#')
+    print('############################################################')
+    print('#')
+    print('# To start with different layers declare a new: \n'
+          '# ANN(nodes=[x, y, z]) or pass command line arguments')
+    print('#')
+    print('############################################################')
+    print('#')
+    print('# To start training type: \n'
+          '# ann.training(epochs=[20], batch=[128], verbose_level=[1])')
     test_x, test_y = ann.get_tests()
     demo_x, demo_y = ann.load_flat()
 
+    print('#')
+    print('############################################################')
+    print('#')
+    print('# When You are satisfied with training, you can blind_test with \n'
+          '# ann.blind_test(feature_set) Returns predictions in a list')
+    print('#')
+    print('############################################################')
     print('')
-    print('########################################')
-    print('When You are satisfied with training, \n'
-          ' you can blind_test with \n'
-          ' ann.blind_test(question)')
-    print('########################################')
-    print('')
-    # ann.training(epochs=20)
-    # print(ann.blind_test(test_x))
 
+    # Start interactive shell
     code.interact(local=locals())
