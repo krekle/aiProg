@@ -267,7 +267,7 @@ class ANN():
         """
         return self.trainX, self.trainY
 
-    def set_sets(self, train, test):
+    def set_sets(self, train=None, test=None):
         """
         Setter for training and test sets. Set it before calling training and train the network
         :param train: The training X and Ys packaged together eg. [train_x, train_y]
@@ -275,10 +275,10 @@ class ANN():
         :return:
         """
         if train:
-            self.trainX, self.trainY = np.hsplit(train, 1)
+            self.trainX, self.trainY = train
             print('Train updated')
         if test:
-            self.testX, self.trainY = np.hsplit(test, 1)
+            self.testX, self.testY = test
             print('Test updated')
 
     def load_flat(self, filename='demo_prep'):
@@ -308,6 +308,7 @@ if __name__ == "__main__":
           ' verbose_level=[1])')
     test_x, test_y = ann.get_tests()
     demo_x, demo_y = ann.load_flat()
+
     print('')
     print('########################################')
     print('When You are satisfied with training, \n'
