@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import numpy
+from numpy import array
 import os
 import pickle
 
 __author__ = 'krekle'
 
 # Path to MNIST files
-__mnist_path__ = os.path.dirname(os.path.abspath(__file__)) + '\\'
+_dir = os.path.dirname(os.path.abspath(__file__)) + '\\'
 
 
 def indexify(x, n):
@@ -20,20 +21,19 @@ def indexify(x, n):
 
 
 def mnist(ntrain=60000, ntest=10000, indexed=True):
-    data_dir = __mnist_path__
-    fd = open(os.path.join(data_dir, 'train-images.idx3-ubyte'))
+    fd = open(os.path.join(_dir, 'train-images.idx3-ubyte'))
     loaded = numpy.fromfile(file=fd, dtype=numpy.uint8)
     trX = loaded[16:].reshape((60000, 28 * 28)).astype(float)
 
-    fd = open(os.path.join(data_dir, 'train-labels.idx1-ubyte'))
+    fd = open(os.path.join(_dir, 'train-labels.idx1-ubyte'))
     loaded = numpy.fromfile(file=fd, dtype=numpy.uint8)
     trY = loaded[8:].reshape((60000))
 
-    fd = open(os.path.join(data_dir, 't10k-images.idx3-ubyte'))
+    fd = open(os.path.join(_dir, 't10k-images.idx3-ubyte'))
     loaded = numpy.fromfile(file=fd, dtype=numpy.uint8)
     teX = loaded[16:].reshape((10000, 28 * 28)).astype(float)
 
-    fd = open(os.path.join(data_dir, 't10k-labels.idx1-ubyte'))
+    fd = open(os.path.join(_dir, 't10k-labels.idx1-ubyte'))
     loaded = numpy.fromfile(file=fd, dtype=numpy.uint8)
     teY = loaded[8:].reshape((10000))
 
@@ -57,12 +57,24 @@ def mnist(ntrain=60000, ntest=10000, indexed=True):
 
 
 # This loads any collection of flat MNIST cases from a file.
-def load_cases(filename='demo_prep', dir=__mnist_path__, nested=True):
+def load_cases(filename='demo_prep', dir=_dir, nested=True):
     fcases = load_flat_cases(filename, dir)
-    return reconstruct_flat_cases(fcases, nested=nested)
+    images, labels = reconstruct_flat_cases(fcases, nested=nested)
 
+    #img_geometry = (array(images).shape[0])
+    #images = array(images).reshape((len(images), 28*28)).astype(float)
+    #labels = indexify(array(labels).reshape(len(labels)), 10)
+    #return images, indexify(labels, 10)
 
-def load_flat_cases(filename, dir=__mnist_path__):
+    # Flatten and reshape images
+    images = array(images)
+    l = int(images.shape[0])
+    w = int(images.shape[1])
+    w2 = int(images.shape[2])
+    images = images.reshape((l, w*w2)).astype(float)
+    return images, indexify(labels, 10)
+
+def load_flat_cases(filename, dir=_dir):
     f = open(dir + filename, 'rb')
     return pickle.load(f)
 
