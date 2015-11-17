@@ -1,9 +1,12 @@
-__author__ = 'krekle'
-
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+from basics import loader as mnist
+import code
+import numpy as np
 import theano
 from theano import tensor as T
-import numpy as np
-from basics import mnist_basics as mnist
+
+__author__ = 'krekle'
 
 ##############################
 ##                          ##
@@ -17,6 +20,14 @@ from basics import mnist_basics as mnist
 theano.config.optimizer = 'fast_compile'
 theano.config.exception_verbosity = 'high'
 theano.config.mode = 'FAST_RUN'  # FAST_COMPILE
+
+##############################
+##                          ##
+##       Theano Config      ##
+##                          ##
+##############################
+
+np.set_printoptions(threshold=np.nan)
 
 
 class ANN():
@@ -53,9 +64,8 @@ class ANN():
             updates.append([p, p - g * lr])
         return updates
 
+    # RMS prop
     def rmsprop(self, error, params, rho=0.9, learning_rate=0.001):
-        # TODO : Dynamic learning rate?
-
         grads = T.grad(cost=error, wrt=params)
         updates = []
         for p, g in zip(params, grads):
@@ -89,7 +99,13 @@ class ANN():
     # This is where the activation functions are applied
     # Represents what happens in a neuron
     def dynamic_model(self, start, node_width):
-
+        """
+        Function representing the whole network with neurons and synapses.
+        Dynamically creates start to hidden, (hidden to hidden)*x and hidden to output.
+        :param start: Start state
+        :param node_width: Node width
+        :return: a function model of the whole network
+        """
         # Dynamic amount of hidden layers, skip output
         hiddens = []
         for i in range(0, len(node_width) - 1):
@@ -111,19 +127,35 @@ class ANN():
     ##                          ##
     ##############################
 
-    def training(self, epochs=20, batch=128):
+    def training(self, epochs=20, batch=128, verbose_level=1):
+        """
+        Method for training the neural network
+        :param epochs: Number of runs to loop over the training data
+        :param batch: How many Xs to run at the same time
+        :param verbose_level: Verbose Level, higher = more output
+        :return:
+        """
         for i in range(epochs):
             error = 0
-            print('Training ... [Epoch {level}]'.format(level=i + 1))
+
+            if verbose_level >= 1:
+                print('Training ... [Epoch {level} / {total}]'.format(level=i + 1, total=epochs))
+
             for start, end in zip(range(0, len(self.trainX), batch),
                                   range(batch, len(self.trainX), batch)):
-                # print('Training ... [Image {image}]'.format(image=start))
+
+                if verbose_level >= 2:
+                    print('Training ... [Image {image}]'.format(image=start))
+
                 error += self.train(self.trainX[start:end], self.trainY[start:end])
 
             # Prediction
-            print(error)
+            if verbose_level >= 1:
+                print(error)
+
             solutions = np.argmax(self.testY, axis=1)
             guessed = self.predict(self.testX)
+
             correct = 0
             for i in range(len(guessed)):
                 if guessed[i] == solutions[i]:
@@ -139,17 +171,30 @@ class ANN():
     ##                          ##
     ##############################
 
-    def blind_test(self, question):
+    def blind_test(self, question, toList=True):
+        """
+        Method for predicting one or multiple inputs to outputs
+        :param question: Item(s) to predict
+        :param toList: Return values as numpy.array or list
+        :return: A list or numpy.array of the predicted values
+        """
         predictor = None
         # Type convertion if question is single item
-        if type(question) is list:
+        if type(question) is list or type(question) is np.ndarray:
             predictor = question
+            print('is list')
         else:
+            print('is not list')
             predictor = [question]
 
+        # Actual prediction as numpy.array
         prediction = self.predict(predictor)
-        print(prediction)
-        return prediction
+
+        # Returns as numpy.array or list
+        if toList:
+            return prediction.tolist()
+        else:
+            return prediction
 
     ##############################
     ##                          ##
@@ -157,9 +202,20 @@ class ANN():
     ##                          ##
     ##############################
 
-    def __init__(self, data, nodes=[784, 128, 10]):
+    def __init__(self, data=None, nodes=[784, 625, 10]):
+        """
+        Initializes an Neural Network
+
+        :param data:  The training and test data, can also be set with set_sets()
+        :param nodes: The layers, first must be number of input features ex. mnist 28x28
+        is 784. After comes hidden layers. Then output 10 nodes -> 0-9 mnist labels
+        :return:
+        """
         # Something with data
-        self.trainX, self.testX, self.trainY, self.testY = mnist.mnist(onehot=True)
+        if data:
+            self.trainX, self.trainY, self.testX, self.testY = data
+        else:
+            self.trainX, self.testX, self.trainY, self.testY = mnist.mnist(indexed=True)
 
         ## Theano Variables ##
         self.unknown = T.fmatrix()
@@ -173,7 +229,8 @@ class ANN():
             raise ValueError('Some nodes are required')
         else:
             for i in range(1, len(nodes)):
-                self.node_width.append(self.gen_weights((nodes[i - 1], nodes[i])))
+                self.node_width.append((theano.shared(np.random.randn(nodes[i - 1], nodes[i]) * 0.01)))
+                # self.node_width.append(self.gen_weights((nodes[i - 1], nodes[i])))
 
         ## Theano Functions ##
 
@@ -197,12 +254,26 @@ class ANN():
         self.predict = theano.function(inputs=[self.unknown], outputs=self.predicted_index, allow_input_downcast=True)
 
     def get_tests(self):
+        """
+        Method for getting tests
+        :return: The test Xs and Ys
+        """
         return self.testX, self.testY
 
     def get_trains(self):
+        """
+        Method for getting training sets
+        :return: The training Xs and Ys
+        """
         return self.trainX, self.trainY
 
     def set_sets(self, train, test):
+        """
+        Setter for training and test sets. Set it before calling training and train the network
+        :param train: The training X and Ys packaged together eg. [train_x, train_y]
+        :param test: The test Xs and Ys packaged together eg. [test_x, test_y]
+        :return:
+        """
         if train:
             self.trainX, self.trainY = np.hsplit(train, 1)
             print('Train updated')
@@ -211,12 +282,37 @@ class ANN():
             print('Test updated')
 
 
-print('Starting Neural Network')
-n = ANN('data')
-test_x, test_y = n.get_tests()
-print(test_x[0])
-print(test_y[0])
+print(__name__)
 
-n.training(epochs=2)
+if __name__ == "__main__":
+    print('########################################')
+    print('##       Starting Neural Network      ##')
+    print('########################################')
+    print('')
+    ann = ANN(nodes=[784, 625, 10])
+    print('Network started with nodes: 784, 625, 10')
+    print('You now have control of the neural \n '
+          'network object ref: ann')
+    print('')
+    print('########################################')
+    print('To start with different layers declare \n'
+          ' a new ANN(nodes=[x, y, z]) or pass \n'
+          ' command line arguments')
+    print('########################################')
+    print('')
+    print('########################################')
+    print('To start training type \n'
+          ' ann.training(epochs=[20], batch=[128], \n'
+          ' verbose_level=[1])')
+    test_x, test_y = ann.get_tests()
+    print('')
+    print('########################################')
+    print('When You are satisfied with training, \n'
+          ' you can blind_test with \n'
+          ' ann.blind_test(question)')
+    print('########################################')
+    print('')
+    # ann.training(epochs=20)
+    # print(ann.blind_test(test_x))
 
-n.blind_test([test_x[0], test_x[1], test_x[3]])
+    code.interact(local=locals())
