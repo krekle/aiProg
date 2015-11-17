@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from basics import loader as mnist
 import code
+import math
 import numpy as np
 import theano
 from theano import tensor as T
@@ -23,7 +24,7 @@ theano.config.mode = 'FAST_RUN'  # FAST_COMPILE
 
 ##############################
 ##                          ##
-##       Theano Config      ##
+##       Numpy Config       ##
 ##                          ##
 ##############################
 
@@ -31,8 +32,12 @@ np.set_printoptions(threshold=np.nan)
 
 
 class ANN():
-    def gen_weights(self, shape):
-        return theano.shared(np.random.randn(*shape) * 0.01)
+
+    def score(self, percent):
+        total = math.ceil(5 - ((100-percent) / 4))
+        print(total)
+        return total
+
 
     ##############################
     ##                          ##
@@ -144,9 +149,6 @@ class ANN():
             for start, end in zip(range(0, len(self.trainX), batch),
                                   range(batch, len(self.trainX), batch)):
 
-                if verbose_level >= 2:
-                    print('Training ... [Image {image}]'.format(image=start))
-
                 error += self.train(self.trainX[start:end], self.trainY[start:end])
 
             # Prediction
@@ -161,6 +163,8 @@ class ANN():
                 if guessed[i] == solutions[i]:
                     correct += 1
 
+            if verbose_level >=2:
+                print('Score: {score}').format(score=self.score(correct / (len(solutions)/100)))
             print(correct)
 
             # print(i, str(np.mean( == )*100)+'%')
@@ -182,9 +186,7 @@ class ANN():
         # Type convertion if question is single item
         if type(question) is list or type(question) is np.ndarray:
             predictor = question
-            print('is list')
         else:
-            print('is not list')
             predictor = [question]
 
         # Actual prediction as numpy.array
@@ -230,7 +232,6 @@ class ANN():
         else:
             for i in range(1, len(nodes)):
                 self.node_width.append((theano.shared(np.random.randn(nodes[i - 1], nodes[i]) * 0.01)))
-                # self.node_width.append(self.gen_weights((nodes[i - 1], nodes[i])))
 
         ## Theano Functions ##
 
@@ -283,6 +284,7 @@ class ANN():
 
     def load_flat(self, filename='demo_prep'):
         return mnist.load_cases(filename)
+
 
 print(__name__)
 
