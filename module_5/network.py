@@ -10,12 +10,13 @@ from basics import mnist_basics as mnist
 ##       Theano Config      ##
 ##                          ##
 ##############################
+# Environment flags:
+# -> "floatX=float32,device=gpu0,nvcc.fastmath=True"
 
+# After Init Config
 theano.config.optimizer = 'fast_compile'
 theano.config.exception_verbosity = 'high'
-
-
-# theano.config.compute_test_value = 'warn'
+theano.config.mode = 'FAST_RUN'  # FAST_COMPILE
 
 
 class ANN():
@@ -66,7 +67,6 @@ class ANN():
             updates.append((p, p - learning_rate * g))
         return updates
 
-
     ##############################
     ##                          ##
     ##          Error           ##
@@ -96,7 +96,7 @@ class ANN():
             if i == 0:
                 # Input -> Hidden
                 hiddens.append(self.rectify(T.dot(start, node_width[i])))
-                #hiddens.append(self.sigmoid(start, node_width[i]))
+                # hiddens.append(self.sigmoid(start, node_width[i]))
             else:
                 # Hidden -> Hidden
                 hiddens.append(self.rectify(T.dot(hiddens[i - 1], node_width[i])))
@@ -140,7 +140,14 @@ class ANN():
     ##############################
 
     def blind_test(self, question):
-        prediction = self.predict(question)
+        predictor = None
+        # Type convertion if question is single item
+        if type(question) is list:
+            predictor = question
+        else:
+            predictor = [question]
+
+        prediction = self.predict(predictor)
         print(prediction)
         return prediction
 
@@ -150,7 +157,7 @@ class ANN():
     ##                          ##
     ##############################
 
-    def __init__(self, data, nodes=[784, 784, 10]):
+    def __init__(self, data, nodes=[784, 128, 10]):
         # Something with data
         self.trainX, self.testX, self.trainY, self.testY = mnist.mnist(onehot=True)
 
@@ -192,6 +199,9 @@ class ANN():
     def get_tests(self):
         return self.testX, self.testY
 
+    def get_trains(self):
+        return self.trainX, self.trainY
+
     def set_sets(self, train, test):
         if train:
             self.trainX, self.trainY = np.hsplit(train, 1)
@@ -200,11 +210,13 @@ class ANN():
             self.testX, self.trainY = np.hsplit(test, 1)
             print('Test updated')
 
-## BIAS
 
 print('Starting Neural Network')
 n = ANN('data')
 test_x, test_y = n.get_tests()
-n.training()
+print(test_x[0])
+print(test_y[0])
 
-n.predict(test_x)
+n.training(epochs=2)
+
+n.blind_test([test_x[0], test_x[1], test_x[3]])

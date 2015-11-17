@@ -4,7 +4,6 @@ __author__ = 'keithd'
 # adapted from http://abel.ee.ucla.edu/cvxopt/_downloads/mnist.py
 
 import os, struct
-import time
 from array import array as pyarray
 import matplotlib.pyplot as pyplot
 import numpy
@@ -21,8 +20,8 @@ def kd_reduce(func, seq):
 
 # Set this to the complete path to your mnist files.
 ## __mnist_path__ = "path/to/all/your/mnist/files"
-__mnist_path__ = "/Users/krekle/Code/School/AI-Prog/aiProg/module_5/basics/"
-
+__mnist_path__ = os.path.dirname(os.path.abspath(__file__))
+print(__mnist_path__)
 
 # The load_mnist function is the main interface between the MNIST files and your machine-learning code.  It fetches
 # subsets of the entire training or test sets, as determined by the 'digits'
