@@ -40,7 +40,7 @@ class ANN():
 
     ##############################
     ##                          ##
-    ##      Cost Functions      ##
+    ##    Weight Improvement    ##
     ##                          ##
     ##############################
 
@@ -53,6 +53,8 @@ class ANN():
         return updates
 
     def rmsprop(self, error, params, rho=0.9, learning_rate=0.001):
+        # TODO : Dynamic learning rate?
+
         grads = T.grad(cost=error, wrt=params)
         updates = []
         for p, g in zip(params, grads):
@@ -64,42 +66,43 @@ class ANN():
             updates.append((p, p - learning_rate * g))
         return updates
 
+
     ##############################
     ##                          ##
-    ##          Model           ##
+    ##          Error           ##
+    ##                          ##
+    ##############################
+
+    def cross_entropy(self, model, known):
+        return T.mean(T.nnet.categorical_crossentropy(model, known))
+
+    def squared_sum(self, model, known):
+        return T.mean(T.sqr(model - known))
+
+    ##############################
+    ##                          ##
+    ##      Equation Model      ##
     ##                          ##
     ##############################
 
     # Black box of computation
     # This is where the activation functions are applied
     # Represents what happens in a neuron
-    def dynamic_model(self, inWeight, weights):
+    def dynamic_model(self, start, node_width):
 
-        # Output weight and node
-       # w_o = weights.pop(-1)
-
-        # Dynamic amount of hidden layers
+        # Dynamic amount of hidden layers, skip output
         hiddens = []
-        for i in range(0, len(weights) -1):
+        for i in range(0, len(node_width) - 1):
             if i == 0:
-                hiddens.append(self.rectify(T.dot(inWeight, weights[i])))
+                # Input -> Hidden
+                hiddens.append(self.rectify(T.dot(start, node_width[i])))
+                #hiddens.append(self.sigmoid(start, node_width[i]))
             else:
-                hiddens.append(self.rectify(T.dot(hiddens[i - 1], weights[i])))
+                # Hidden -> Hidden
+                hiddens.append(self.rectify(T.dot(hiddens[i - 1], node_width[i])))
 
         # Hidden to output -> Cost function (softmax) Last Layer
-        pyx = self.soft(hiddens[-1], weights[-1])
-        return pyx
-
-    def no_dynamic_model(self, X, w_h, w_h2, w_o):
-        print(w_h)
-        # Input to hidden -> Activation method (sigmoid) Layer 1
-        hidden1 = self.rectify(T.dot(X, w_h))
-
-        # Add more layers here #
-        hidden2 = self.rectify(T.dot(hidden1, w_h2))  # Activation method (rectify) Layer 2
-
-        # Hidden to output -> Cost function (softmax) Last Layer
-        pyx = self.soft(hidden2, w_o)
+        pyx = self.soft(hiddens[-1], node_width[-1])
         return pyx
 
     ##############################
@@ -109,17 +112,18 @@ class ANN():
     ##############################
 
     def training(self, epochs=20, batch=128):
-        print('Training ...')
         for i in range(epochs):
             error = 0
-            print('Training ... [Epoch {level}]'.format(level=i))
-            for start, end in zip(range(0, len(self.trX), batch),
-                                  range(batch, len(self.trX), batch)):
+            print('Training ... [Epoch {level}]'.format(level=i + 1))
+            for start, end in zip(range(0, len(self.trainX), batch),
+                                  range(batch, len(self.trainX), batch)):
                 # print('Training ... [Image {image}]'.format(image=start))
-                error += self.train(self.trX[start:end], self.trY[start:end])
+                error += self.train(self.trainX[start:end], self.trainY[start:end])
+
+            # Prediction
             print(error)
-            solutions = np.argmax(self.teY, axis=1)
-            guessed = self.predict(self.teX)
+            solutions = np.argmax(self.testY, axis=1)
+            guessed = self.predict(self.testX)
             correct = 0
             for i in range(len(guessed)):
                 if guessed[i] == solutions[i]:
@@ -127,7 +131,7 @@ class ANN():
 
             print(correct)
 
-            #print(i, str(np.mean( == )*100)+'%')
+            # print(i, str(np.mean( == )*100)+'%')
 
     ##############################
     ##                          ##
@@ -148,42 +152,53 @@ class ANN():
 
     def __init__(self, data, nodes=[784, 784, 10]):
         # Something with data
-        self.trX, self.teX, self.trY, self.teY = mnist.mnist(onehot=True)
+        self.trainX, self.testX, self.trainY, self.testY = mnist.mnist(onehot=True)
 
         ## Theano Variables ##
-        self.X = T.fmatrix()
-        self.Y = T.fmatrix()
+        self.unknown = T.fmatrix()
+        self.known = T.fmatrix()
 
         ### Synapse Weights ###
-        self.weights = []
+
+        self.node_width = []
         # Synapses and Neurons
-        if len(nodes) % 1 is not 0:
-            raise ValueError('Weights must be even number and come as input/output pairs')
+        if len(nodes) < 2:
+            raise ValueError('Some nodes are required')
         else:
             for i in range(1, len(nodes)):
-                self.weights.append(self.gen_weights((nodes[i-1], nodes[i])))
+                self.node_width.append(self.gen_weights((nodes[i - 1], nodes[i])))
 
-        ### Create model ##
-        ## Probability outputs and maxima predictions
-        self.py_x = self.dynamic_model(self.X, self.weights)
-        # index of highest in output
-        self.y_x = T.argmax(self.py_x, axis=1)
+        ## Theano Functions ##
 
-        ## Classification metrix to optimize, ERROR
-        self.error = T.mean(T.nnet.categorical_crossentropy(self.py_x, self.Y))
+        # Network model -> Activation Functions
+        self.equation_model = self.dynamic_model(self.unknown, self.node_width)
 
-        # Cost funtion
-        self.updates = self.rmsprop(self.error, self.weights)
+        # index of highest in output, ie: the digit with highest probability
+        self.predicted_index = T.argmax(self.equation_model, axis=1)
 
-        # Train function
-        self.train = theano.function(inputs=[self.X, self.Y], outputs=self.error, updates=self.updates,
+        # Error Function, crossentropy of predicted and actual
+        self.error = self.cross_entropy(self.equation_model, self.known)
+
+        # Weight Improvement Function
+        self.updates = self.rmsprop(self.error, self.node_width)
+
+        # Train function, output through error function, update with update
+        self.train = theano.function(inputs=[self.unknown, self.known], outputs=self.error, updates=self.updates,
                                      allow_input_downcast=True)
 
         # Predict function
-        self.predict = theano.function(inputs=[self.X], outputs=self.y_x, allow_input_downcast=True)
+        self.predict = theano.function(inputs=[self.unknown], outputs=self.predicted_index, allow_input_downcast=True)
 
     def get_tests(self):
-        return self.teX, self.teY
+        return self.testX, self.testY
+
+    def set_sets(self, train, test):
+        if train:
+            self.trainX, self.trainY = np.hsplit(train, 1)
+            print('Train updated')
+        if test:
+            self.testX, self.trainY = np.hsplit(test, 1)
+            print('Test updated')
 
 ## BIAS
 
@@ -191,6 +206,5 @@ print('Starting Neural Network')
 n = ANN('data')
 test_x, test_y = n.get_tests()
 n.training()
-n.predicting([test_x[2]])
-n.predicting([test_x[3]])
-n.predicting([test_x[4]])
+
+n.predict(test_x)
