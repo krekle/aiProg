@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 import numpy
 import os
+import pickle
 
 __author__ = 'krekle'
 
 # Path to MNIST files
-__mnist_path__ = os.path.dirname(os.path.abspath(__file__))
-
+__mnist_path__ = os.path.dirname(os.path.abspath(__file__)) + '\\'
 
 
 def indexify(x, n):
@@ -54,3 +54,26 @@ def mnist(ntrain=60000, ntest=10000, indexed=True):
         teY = numpy.asarray(teY)
 
     return trX, teX, trY, teY
+
+
+# This loads any collection of flat MNIST cases from a file.
+def load_cases(filename='demo_prep', dir=__mnist_path__, nested=True):
+    fcases = load_flat_cases(filename, dir)
+    return reconstruct_flat_cases(fcases, nested=nested)
+
+
+def load_flat_cases(filename, dir=__mnist_path__):
+    f = open(dir + filename, 'rb')
+    return pickle.load(f)
+
+
+def reconstruct_flat_cases(cases, dims=(28, 28), nested=True):
+    labels = numpy.array([[label] for label in cases[1]]) if nested else cases[1]
+    images = [reconstruct_image(i, dims=dims) for i in cases[0]] if nested else cases[0]
+    return images, labels
+
+
+def reconstruct_image(flat_list, dims=(28, 28)):
+    image = numpy.array(flat_list)
+    image = numpy.reshape(image, dims)
+    return image

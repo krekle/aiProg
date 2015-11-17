@@ -281,6 +281,8 @@ class ANN():
             self.testX, self.trainY = np.hsplit(test, 1)
             print('Test updated')
 
+    def load_flat(self, filename='demo_prep'):
+        return mnist.load_cases(filename)
 
 print(__name__)
 
@@ -305,6 +307,7 @@ if __name__ == "__main__":
           ' ann.training(epochs=[20], batch=[128], \n'
           ' verbose_level=[1])')
     test_x, test_y = ann.get_tests()
+    demo_x, demo_y = ann.load_flat()
     print('')
     print('########################################')
     print('When You are satisfied with training, \n'
