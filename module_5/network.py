@@ -164,8 +164,8 @@ class ANN():
                     correct += 1
 
             if verbose_level >=2:
-                print('Score: {score}').format(score=self.score(correct / (len(solutions)/100)))
-            print(correct)
+                print('Score: {score}'.format(score=self.score(correct / (len(solutions)/100))))
+            print('Guessed {correct} of {total}'.format(correct=correct, total=len(solutions)))
 
             # print(i, str(np.mean( == )*100)+'%')
 
@@ -279,7 +279,7 @@ class ANN():
             self.trainX, self.trainY = train
             print('Train updated')
         if test:
-            self.testX, self.testY = test
+            self.testX, self.testY = testann
             print('Test updated')
 
     def load_flat(self, filename='demo_prep'):
@@ -293,7 +293,7 @@ if __name__ == "__main__":
     print('##                 Starting Neural Network                ##')
     print('############################################################')
     print('#')
-    ann = ANN(nodes=[784, 625, 10])
+    ann = ANN(nodes=[784, 625, 625, 10])
     print('# Network started with layers: 784, 625, 10 You now have \n'
           '# control of the neural network object ref: ann')
     print('#')
@@ -320,3 +320,10 @@ if __name__ == "__main__":
 
     # Start interactive shell
     code.interact(local=locals())
+
+"""
+TODO:
+- Optimize layer generation, dynamically change layers
+- batches
+- Change loader
+"""
