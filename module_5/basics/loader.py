@@ -4,7 +4,6 @@ import numpy
 from numpy import array
 import os
 import pickle
-from pip._vendor import requests
 
 __author__ = 'krekle'
 
