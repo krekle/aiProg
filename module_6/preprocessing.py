@@ -58,9 +58,3 @@ class Process:
                                 result[y][x] += 1
 
             return result
-
-#test = np.array([[2, 1, 0, 2, 2, 1, 2, 2, 1]])
-
-
-#results = Process.mergable_neighbours(test, shape=(3, 3))
-#print(results)

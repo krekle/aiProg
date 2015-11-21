@@ -110,7 +110,7 @@ class Neural(Player):
 
 
         # Initialize neural network
-        self.neural_net = ANN(nodes=(16, 8, 6, 4), data=data)
+        self.neural_net = ANN(nodes=(16, 700, 4), data=data)
 
         # Train
         self.train()
@@ -132,7 +132,7 @@ class Neural(Player):
         """
         Method for training the network
         """
-        self.neural_net.train(batch=120, verbose_level=0, epochs=2)
+        self.neural_net.train(batch=120, verbose_level=2, epochs=2)
 
     def do_move(self, game):
         moved = False
@@ -144,6 +144,7 @@ class Neural(Player):
 
         # Do move
         prediction = self.neural_net.blind_test([n])[0]
+        print(prediction)
         for pred in prediction:
             if game.move(self.directions[pred]):
                 return True
@@ -152,9 +153,10 @@ class Neural(Player):
         return False
 
 
-ran = Random()
-ann = Neural()
-print(ran.get_scores())
-print(ann.get_scores())
+while(True):
+    ran = Random()
+    ann = Neural()
+    print(ran.get_scores())
+    print(ann.get_scores())
 
-print(welch(ran.get_scores(), ann.get_scores()))
+    print(welch(ran.get_scores(), ann.get_scores()))

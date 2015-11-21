@@ -120,8 +120,8 @@ class ANN():
                 hiddens.append(self.rectify(hiddens[i - 1], node_width[i]))
 
         # Hidden to output -> Cost function (softmax) Last Layer
-        model = self.soft(hiddens[-1], node_width[-1])
-        return model
+        hiddens.append(self.soft(hiddens[-1], node_width[-1]))
+        return hiddens
 
     ##############################
     ##                          ##
@@ -231,11 +231,11 @@ class ANN():
 
         # index of highest in output, ie: the digit with highest probability
         #self.predicted_index = T.argmax(self.equation_model, axis=1)
-        self.predicted_index = T.argsort(self.equation_model, axis=1)
+        self.predicted_index = T.argsort(self.equation_model[-1], axis=1)
 
 
         # Error Function, crossentropy of predicted and actual
-        self.error = self.cross_entropy(self.equation_model, self.known)
+        self.error = self.cross_entropy(self.equation_model[-1], self.known)
 
         # Weight Improvement Function
         self.updates = self.rmsprop(self.error, self.layers)
