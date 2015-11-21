@@ -32,12 +32,9 @@ np.set_printoptions(threshold=np.nan)
 
 
 class ANN():
-
-    def score(self, percent):
-        total = math.ceil(5 - ((100-percent) / 4))
-        print(total)
+    def score(self, percent, k=4):
+        total = math.ceil(5 - ((100 - percent) / 4))
         return total
-
 
     ##############################
     ##                          ##
@@ -45,15 +42,15 @@ class ANN():
     ##                          ##
     ##############################
 
-    def sigmoid(self, x, w):
-        return T.nnet.sigmoid(T.dot(x, w))
+    def sigmoid(self, layer, weight):
+        return T.nnet.sigmoid(T.dot(layer, weight))
 
-    def rectify(self, x):
+    def rectify(self, layer, weight):
         # Tann.relu
-        return T.maximum(x, 0.)
+        return T.maximum(T.dot(layer, weight), 0.)
 
-    def soft(self, h, w):
-        return T.nnet.softmax(T.dot(h, w))
+    def soft(self, layer, weight):
+        return T.nnet.softmax(T.dot(layer, weight))
 
     ##############################
     ##                          ##
@@ -116,15 +113,15 @@ class ANN():
         for i in range(0, len(node_width) - 1):
             if i == 0:
                 # Input -> Hidden
-                hiddens.append(self.rectify(T.dot(start, node_width[i])))
+                hiddens.append(self.rectify(start, node_width[i]))
                 # hiddens.append(self.sigmoid(start, node_width[i]))
             else:
                 # Hidden -> Hidden
-                hiddens.append(self.rectify(T.dot(hiddens[i - 1], node_width[i])))
+                hiddens.append(self.rectify(hiddens[i - 1], node_width[i]))
 
         # Hidden to output -> Cost function (softmax) Last Layer
-        pyx = self.soft(hiddens[-1], node_width[-1])
-        return pyx
+        model = self.soft(hiddens[-1], node_width[-1])
+        return model
 
     ##############################
     ##                          ##
@@ -132,7 +129,7 @@ class ANN():
     ##                          ##
     ##############################
 
-    def training(self, epochs=20, batch=128, verbose_level=1):
+    def train(self, epochs=20, batch=128, verbose_level=2):
         """
         Method for training the neural network
         :param epochs: Number of runs to loop over the training data
@@ -148,26 +145,23 @@ class ANN():
 
             for start, end in zip(range(0, len(self.trainX), batch),
                                   range(batch, len(self.trainX), batch)):
-
-                error += self.train(self.trainX[start:end], self.trainY[start:end])
+                error += self.training(self.trainX[start:end], self.trainY[start:end])
 
             # Prediction
             if verbose_level >= 1:
-                print(error)
+                print('- error Rate: {error}'.format(error=error))
 
-            solutions = np.argmax(self.testY, axis=1)
-            guessed = self.predict(self.testX)
+            #solutions = np.argmax(self.testY, axis=1)
+            guessed = self.predicting(self.testX)
 
-            correct = 0
-            for i in range(len(guessed)):
-                if guessed[i] == solutions[i]:
-                    correct += 1
+            #correct = 0
+            #for i in range(len(guessed)):
+            #    if guessed[i] == solutions[i]:
+            #        correct += 1
 
-            if verbose_level >=2:
-                print('Score: {score}'.format(score=self.score(correct / (len(solutions)/100))))
-            print('Guessed {correct} of {total}'.format(correct=correct, total=len(solutions)))
-
-            # print(i, str(np.mean( == )*100)+'%')
+            #if verbose_level >= 2:
+            #    print('- guessed {correct} of {total} ({percent}%)'.format(correct=correct, total=len(solutions),
+            #                                                               percent=(correct / (len(solutions) / 100))))
 
     ##############################
     ##                          ##
@@ -190,7 +184,7 @@ class ANN():
             predictor = [question]
 
         # Actual prediction as numpy.array
-        prediction = self.predict(predictor)
+        prediction = self.predicting(predictor)
 
         # Returns as numpy.array or list
         if toList:
@@ -224,36 +218,36 @@ class ANN():
         self.known = T.fmatrix()
 
         ### Synapse Weights ###
-
-        self.node_width = []
+        self.layers = []
         # Synapses and Neurons
         if len(nodes) < 2:
             raise ValueError('Some nodes are required')
         else:
             for i in range(1, len(nodes)):
-                print('Node ({x},{y})'.format(x=nodes[i - 1], y=nodes[i]))
-                self.node_width.append((theano.shared(np.random.randn(nodes[i - 1], nodes[i]) * 0.01)))
-
-        ## Theano Functions ##
+                self.layers.append((theano.shared(np.random.randn(nodes[i - 1], nodes[i]) * 0.01)))
 
         # Network model -> Activation Functions
-        self.equation_model = self.dynamic_model(self.unknown, self.node_width)
+        self.equation_model = self.dynamic_model(self.unknown, self.layers)
 
         # index of highest in output, ie: the digit with highest probability
-        self.predicted_index = T.argmax(self.equation_model, axis=1)
+        #self.predicted_index = T.argmax(self.equation_model, axis=1)
+        self.predicted_index = T.argsort(self.equation_model, axis=1)
+
 
         # Error Function, crossentropy of predicted and actual
         self.error = self.cross_entropy(self.equation_model, self.known)
 
         # Weight Improvement Function
-        self.updates = self.rmsprop(self.error, self.node_width)
+        self.updates = self.rmsprop(self.error, self.layers)
 
         # Train function, output through error function, update with update
-        self.train = theano.function(inputs=[self.unknown, self.known], outputs=self.error, updates=self.updates,
-                                     allow_input_downcast=True)
+        self.training = theano.function(inputs=[self.unknown, self.known], outputs=self.error, updates=self.updates,
+                                        allow_input_downcast=True)
 
         # Predict function
-        self.predict = theano.function(inputs=[self.unknown], outputs=self.predicted_index, allow_input_downcast=True)
+        #self.predicting = theano.function(inputs=[self.unknown], outputs=self.predicted_index,
+        #                                  allow_input_downcast=True)
+        self.predicting = theano.function(inputs=[self.unknown], outputs=self.predicted_index, allow_input_downcast=True)
 
     def get_tests(self):
         """
@@ -280,7 +274,7 @@ class ANN():
             self.trainX, self.trainY = train
             print('Train updated')
         if test:
-            self.testX, self.testY = testann
+            self.testX, self.testY = test
             print('Test updated')
 
     def load_flat(self, filename='demo_prep'):

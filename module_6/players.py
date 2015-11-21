@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import copy
 
 import os
 import random
@@ -9,6 +10,7 @@ import numpy as np
 from gamelogic.board import Game, Direction
 from network import ANN
 from module_6.preprocessing import Process
+from module_6.ai2048demo import welch
 
 __author__ = 'krekle'
 
@@ -17,11 +19,14 @@ class Player:
     """
     Abstract player class
     """
-    directions = [Direction.Left, Direction.Right, Direction.Up, Direction.Down]
-    games = []
-    scores = []
+    # Static Fields
+    directions = [Direction.Left, Direction.Up, Direction.Right, Direction.Down]
 
     def __init__(self, games_count=50):
+        # Create Fields
+        self.games = []
+        self.scores = []
+
         # Create games
         for i in range(games_count):
             self.games.append(Game())
@@ -57,7 +62,8 @@ class Player:
 class Random(Player):
     def do_move(self, game):
         # Randomize moves
-        random.shuffle(self.directions)
+        dir_copy = copy.deepcopy(self.directions)
+        random.shuffle(dir_copy)
 
         moved = False
         tries = -1
@@ -66,12 +72,12 @@ class Random(Player):
             tries += 1
 
             # Check if no possible moves => Game over
-            if tries > len(self.directions) - 1:
+            if tries > len(dir_copy) - 1:
                 break  # the loop
 
             # As long as moves are possible continue
             else:
-                moved = game.move(self.directions[tries])
+                moved = game.move(dir_copy[tries])
 
         # If True -> board moved, continue
         # If False -> no possible moves, game over
@@ -81,7 +87,7 @@ class Random(Player):
 class Neural(Player):
     neural_net = None
 
-    def __init__(self, games_count=10):
+    def __init__(self, games_count=50):
         # Load training data
         data_2048 = np.loadtxt('log-2048.txt', dtype=float, usecols=range(17))
 
@@ -95,7 +101,10 @@ class Neural(Player):
         # Get the states
         states_2048 = np.delete(data_2048, np.s_[-1:], 1)
 
-        data = [Process.mergable_neighbours(states_2048, nested=False, shape=(4, 4)), labels_2048, states_2048,
+        # Preprocess
+        states_2048 = self.preprocess(states_2048)
+
+        data = [states_2048, labels_2048, states_2048,
                 labels_2048]
 
 
@@ -109,23 +118,43 @@ class Neural(Player):
         # Call super
         super(Neural, self).__init__(games_count=games_count)
 
+    def preprocess(self, data, d_type=np.float):
+        if type(data) == list:
+            data = Process.mergable_neighbours(data, shape=(4, 4)).flatten().astype(d_type)
+        else:
+            for state_index in range(len(data)):
+                data[state_index] = Process.mergable_neighbours(data[state_index], shape=(4, 4)).flatten().astype(
+                    d_type)
+
+        return data
+
     def train(self):
         """
         Method for training the network
         """
-        self.neural_net.training(batch=120, verbose_level=2, epochs=10)
+        self.neural_net.train(batch=120, verbose_level=0, epochs=2)
 
     def do_move(self, game):
-        moves = False
-        print(game.grid)
-        print(self.neural_net.blind_test(np.array(game.grid)))
-        pass
+        moved = False
 
+        # Preprocess to match training
+        n = self.preprocess(game.grid)
+        # print('Game grid: {game})'.format(game=game.grid))
+        # print('After processing: {n})'.format(n=n))
 
-        # Preprocessing Methods
+        # Do move
+        prediction = self.neural_net.blind_test([n])[0]
+        for pred in prediction:
+            if game.move(self.directions[pred]):
+                return True
+
+        # No lleagal moves, game over
+        return False
 
 
 ran = Random()
 ann = Neural()
 print(ran.get_scores())
 print(ann.get_scores())
+
+print(welch(ran.get_scores(), ann.get_scores()))

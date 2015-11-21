@@ -32,7 +32,7 @@ class Game():
     def __init__(self, grid=None):
         # Generate new empty grid
         if not grid:
-            self.grid = [[' ' for x in range(4)] for y in range(4)]
+            self.grid = [[0 for x in range(4)] for y in range(4)]
         else:
             self.grid = grid
 
@@ -58,7 +58,7 @@ class Game():
         ran = []
         for y in range(len(self.grid)):
             for x in range(len(self.grid[y])):
-                if self.grid[y][x] == ' ':
+                if self.grid[y][x] == 0:
                     ran.append((y, x))
 
         # Pick one tile at random
@@ -80,7 +80,7 @@ class Game():
 
     def set(self, y, x, value=None):
         if value is None:
-            self.grid[y][x] = ' '
+            self.grid[y][x] = 0
         else:
             self.grid[y][x] = value
 
@@ -92,24 +92,24 @@ class Game():
         res = line
 
         # Remove all empty elements
-        if ' ' in line:
-            while (' ' in res):
-                res.remove(' ')
+        if 0 in line:
+            while (0 in res):
+                res.remove(0)
 
         # Combine and remove logic
         for i in range(0, len(res)):
             if i < len(res) and i + 1 < len(res):
                 if res[i] == res[i + 1]:
                     res[i] = res[i] + res[i + 1]
-                    res[i + 1] = ' '
+                    res[i + 1] = 0
 
         # Remove evt new empty
-        if ' ' in res:
-            res.remove(' ')
+        if 0 in res:
+            res.remove(0)
 
 
         # Fill the end with empty values
-        return res + [' '] * (n - len(res))
+        return res + [0] * (n - len(res))
 
     def move(self, direction):
         # For validating move
@@ -174,8 +174,8 @@ class Game():
         res = 0
         for l in board:
             r = copy.deepcopy(l)
-            while ' ' in r:
-                r.remove(' ')
+            while 0 in r:
+                r.remove(0)
 
             res += sum(r)
         return res
@@ -184,7 +184,7 @@ class Game():
         highest = 0
         for y in range(len(self.grid)):
             for x in range(len(self.grid[y])):
-                if self.grid[y][x] != ' ':
+                if self.grid[y][x] != 0:
                     if self.grid[y][x] > highest:
                         highest = self.grid[y][x]
         return highest

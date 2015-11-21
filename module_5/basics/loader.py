@@ -8,7 +8,17 @@ import pickle
 __author__ = 'krekle'
 
 # Path to MNIST files
-_dir = os.path.dirname(os.path.abspath(__file__)) + '/'
+system_divider = ''
+
+from sys import platform as _platform
+if _platform == "linux" or _platform == "linux2":
+    system_divider = '/'
+elif _platform == "darwin":
+    system_divider = '/'
+elif _platform == "win32":
+    system_divider = '\\'
+
+_dir = os.path.dirname(os.path.abspath(__file__)) + system_divider
 
 
 def indexify(x, n):
