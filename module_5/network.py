@@ -213,7 +213,7 @@ class ANN():
         is 784. After comes hidden layers. Then output 10 nodes -> 0-9 mnist labels
         :return:
         """
-        # Something with data
+
         if data:
             self.trainX, self.trainY, self.testX, self.testY = data
         else:
@@ -327,3 +327,4 @@ TODO:
 - batches
 - Change loader
 """
+

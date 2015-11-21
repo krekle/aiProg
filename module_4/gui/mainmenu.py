@@ -39,7 +39,7 @@ class GameGui(Tk):
         self.parent = parent
 
         # Game title
-        self.title("2048")
+        self.title("gamelogic")
 
         # Geometry
         self.geometry("{0}x{1}+0+0".format(545, (self.winfo_screenheight() / 2) + 250))

@@ -73,7 +73,7 @@ class Game():
 
     def pprint(self):
         for line in self.grid:
-            print line
+            print(line)
 
     def get(self, y, x):
         return self.grid[y][x]
