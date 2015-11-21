@@ -41,9 +41,11 @@ class MinMax():
 
             # Log the move
             if way is None:
-                self.log.write_log()
+                # self.log.write_log()
+                pass
             else:
                 self.log.add_log(copy.deepcopy(self.game.grid), way)
+                self.log.write_log()
 
             return direc, highest
         except Exception, err:

@@ -58,3 +58,5 @@ class Process:
                                 result[y][x] += 1
 
             return result
+
+        # TODO: Logarithm of 2

@@ -102,7 +102,7 @@ class Neural(Player):
         states_2048 = np.delete(data_2048, np.s_[-1:], 1)
 
         # Preprocess
-        states_2048 = self.preprocess(states_2048)
+        #states_2048 = self.preprocess(states_2048)
 
         data = [states_2048, labels_2048, states_2048,
                 labels_2048]
@@ -119,31 +119,37 @@ class Neural(Player):
         super(Neural, self).__init__(games_count=games_count)
 
     def preprocess(self, data, d_type=np.float):
-        if type(data) == list:
-            data = Process.mergable_neighbours(data, shape=(4, 4)).flatten().astype(d_type)
-        else:
-            for state_index in range(len(data)):
-                data[state_index] = Process.mergable_neighbours(data[state_index], shape=(4, 4)).flatten().astype(
-                    d_type)
+        #if type(data) == list:
+        #    data = Process.mergable_neighbours(data, shape=(4, 4)).flatten().astype(d_type)
+        #else:
+        #    for state_index in range(len(data)):
+        #        data[state_index] = Process.mergable_neighbours(data[state_index], shape=(4, 4)).flatten().astype(
+        #            d_type)
 
         return data
 
-    def train(self):
+    def train(self, batch=20, verbose_level=2, epochs=1):
         """
         Method for training the network
         """
-        self.neural_net.train(batch=120, verbose_level=2, epochs=2)
+        self.neural_net.train(batch=batch, verbose_level=verbose_level, epochs=epochs)
 
     def do_move(self, game):
-        moved = False
 
         # Preprocess to match training
-        n = self.preprocess(game.grid)
+        #n = self.preprocess(game.grid)
         # print('Game grid: {game})'.format(game=game.grid))
         # print('After processing: {n})'.format(n=n))
 
         # Do move
-        prediction = self.neural_net.blind_test([n])[0]
+        prediction = self.neural_net.blind_test([np.array(game.grid).flatten()])[0]
+
+        #while len(prediction) > 0:
+        #    move = max(prediction)
+        #    if game.move(self.directions[prediction.index(move)]):
+        #        return True
+        #    else:
+        #        prediction.remove(max(prediction))
         print(prediction)
         for pred in prediction:
             if game.move(self.directions[pred]):

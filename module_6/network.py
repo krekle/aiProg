@@ -67,7 +67,7 @@ class ANN():
         return updates
 
     # RMS prop
-    def rmsprop(self, error, params, rho=0.9, learning_rate=0.001):
+    def rmsprop(self, error, params, rho=0.9, learning_rate=0.01):
         grads = T.grad(cost=error, wrt=params)
         updates = []
         for p, g in zip(params, grads):
@@ -280,53 +280,3 @@ class ANN():
     def load_flat(self, filename='demo_prep'):
         return mnist.load_cases(filename)
 
-
-if __name__ == "__main__":
-
-    ## LOAD gamelogic data
-
-    # Load training data
-    data_2048 = np.loadtxt('log-2048.txt', dtype=int, usecols=range(17))
-
-    # Get the labels
-    raw_labels_2048 = data_2048[:,16]
-    labels_2048 = [[float(0) for y in range(4)] for x in range(len(raw_labels_2048))]
-    for i in range(len(raw_labels_2048)):
-        labels_2048[i][int(raw_labels_2048[i])] = 1.0
-    labels_2048 = np.array(labels_2048)
-    print(labels_2048)
-
-    # Get the states
-    states_2048 = np.delete(data_2048,np.s_[-1:],1)
-
-    data = [Processstates_2048, labels_2048, states_2048, labels_2048]
-
-    print('############################################################')
-    print('##                 Starting Neural Network                ##')
-    print('############################################################')
-    print('#')
-    ann = ANN(data=data, nodes=[16, 700, 32, 4])
-    print('# Network started with layers: 16, 12, 12, 4 You now have \n'
-          '# control of the neural network object ref: ann')
-    print('#')
-    print('############################################################')
-    print('#')
-    print('# To start with different layers declare a new: \n'
-          '# ANN(nodes=[x, y, z]) or pass command line arguments')
-    print('#')
-    print('############################################################')
-    print('#')
-    print('# To start training type: \n'
-          '# ann.training(epochs=[20], batch=[128], verbose_level=[1])')
-
-    print('#')
-    print('############################################################')
-    print('#')
-    print('# When You are satisfied with training, you can blind_test with \n'
-          '# ann.blind_test(feature_set) Returns predictions in a list')
-    print('#')
-    print('############################################################')
-    print('')
-
-    # Start interactive shell
-    code.interact(local=locals())
