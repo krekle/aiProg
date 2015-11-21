@@ -141,7 +141,6 @@ class Game():
         # Horizontal Movement
         if direction == Direction.Left or direction == Direction.Right:
             for y in range(0, self.y_size):
-
                 # Set moved as new line
                 self.grid[y] = self.move_line(self.grid[y])
 
@@ -179,4 +178,13 @@ class Game():
                 r.remove(' ')
 
             res += sum(r)
-        return  res
+        return res
+
+    def highest_tile(self):
+        highest = 0
+        for y in range(len(self.grid)):
+            for x in range(len(self.grid[y])):
+                if self.grid[y][x] != ' ':
+                    if self.grid[y][x] > highest:
+                        highest = self.grid[y][x]
+        return highest
