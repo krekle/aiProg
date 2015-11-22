@@ -50,7 +50,7 @@ class Process:
                         dy, dx = direction
 
                         # Check that values are in bounds
-                        if 0 <= y+dy < len(copy) and 0 <= x+dx < len(copy[y]):
+                        if 0 <= y + dy < len(copy) and 0 <= x + dx < len(copy[y]):
                             neighbour = copy[y + dy][x + dx]
                             # If neighbour has same value, add one
 
@@ -59,4 +59,18 @@ class Process:
 
             return result
 
-        # TODO: Logarithm of 2
+    # TODO: Logarithm of 2
+    @staticmethod
+    def logarithm(in_grid):
+        copy = np.array(in_grid)
+        shape_x, shape_y = copy.shape
+
+        result = None
+
+        if shape_x != shape_y:
+            result = np.reshape(copy, (4, 4))
+
+        # Loop through the grid
+        for y in range(0, len()):
+            for x in range(0, len(copy[y])):
+                pass

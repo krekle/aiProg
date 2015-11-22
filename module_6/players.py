@@ -22,7 +22,7 @@ class Player:
     # Static Fields
     directions = [Direction.Left, Direction.Up, Direction.Right, Direction.Down]
 
-    def __init__(self, games_count=50):
+    def __init__(self, games_count=10000):
         # Create Fields
         self.games = []
         self.scores = []
@@ -96,13 +96,14 @@ class Neural(Player):
         labels_2048 = [[0 for y in range(4)] for x in range(len(raw_labels_2048))]
         for i in range(len(raw_labels_2048)):
             labels_2048[i][int(raw_labels_2048[i])] = 1.0
+
         labels_2048 = np.array(labels_2048)
 
         # Get the states
         states_2048 = np.delete(data_2048, np.s_[-1:], 1)
 
         # Preprocess
-        #states_2048 = self.preprocess(states_2048)
+        # states_2048 = self.preprocess(states_2048)
 
         data = [states_2048, labels_2048, states_2048,
                 labels_2048]
@@ -110,7 +111,7 @@ class Neural(Player):
 
 
         # Initialize neural network
-        self.neural_net = ANN(nodes=(16, 700, 4), data=data)
+        self.neural_net = ANN(nodes=(16, 100, 4), data=data)
 
         # Train
         self.train()
@@ -119,16 +120,16 @@ class Neural(Player):
         super(Neural, self).__init__(games_count=games_count)
 
     def preprocess(self, data, d_type=np.float):
-        #if type(data) == list:
+        # if type(data) == list:
         #    data = Process.mergable_neighbours(data, shape=(4, 4)).flatten().astype(d_type)
-        #else:
+        # else:
         #    for state_index in range(len(data)):
         #        data[state_index] = Process.mergable_neighbours(data[state_index], shape=(4, 4)).flatten().astype(
         #            d_type)
 
         return data
 
-    def train(self, batch=20, verbose_level=2, epochs=1):
+    def train(self, batch=10, verbose_level=2, epochs=1):
         """
         Method for training the network
         """
@@ -137,20 +138,14 @@ class Neural(Player):
     def do_move(self, game):
 
         # Preprocess to match training
-        #n = self.preprocess(game.grid)
+        # n = self.preprocess(game.grid)
         # print('Game grid: {game})'.format(game=game.grid))
         # print('After processing: {n})'.format(n=n))
 
         # Do move
         prediction = self.neural_net.blind_test([np.array(game.grid).flatten()])[0]
 
-        #while len(prediction) > 0:
-        #    move = max(prediction)
-        #    if game.move(self.directions[prediction.index(move)]):
-        #        return True
-        #    else:
-        #        prediction.remove(max(prediction))
-        print(prediction)
+        # print(prediction)
         for pred in prediction:
             if game.move(self.directions[pred]):
                 return True
@@ -159,10 +154,20 @@ class Neural(Player):
         return False
 
 
-while(True):
-    ran = Random()
-    ann = Neural()
-    print(ran.get_scores())
-    print(ann.get_scores())
+while (True):
+    avg = []
+    try:
+        ran = Random()
+        ann = Neural()
 
-    print(welch(ran.get_scores(), ann.get_scores()))
+        #print(ran.get_scores())
+        #print(ann.get_scores())
+
+        print(np.average(ran.get_scores()))
+
+        print(np.average(ann.get_scores()))
+        avg.append(np.average(ann.get_scores()))
+
+        # print(welch(ran.get_scores(), ann.get_scores()))
+    except KeyboardInterrupt:
+        print(np.average(avg))

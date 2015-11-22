@@ -4,6 +4,7 @@ import numpy
 from numpy import array
 import os
 import pickle
+import requests
 
 __author__ = 'krekle'
 
@@ -113,8 +114,7 @@ def minor_demo(ann,ignore=0):
     def test_it(ann,cases,k=4):
         images,_ = cases
         predictions = ann.blind_test(images)  # Students must write THIS method for their ANN
-        print(predictions)
-        # return score_it(predictions,k=k)
+        return score_it(predictions,k=k)
 
     demo100 = load_flat_text_cases('demo100_text.txt')
     training_cases = load_flat_text_cases('all_flat_mnist_training_cases_text.txt')
