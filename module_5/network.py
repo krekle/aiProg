@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from basics import loader as mnist
+from module_5.basics.loader import _dir
 import code
 import math
 import numpy as np
@@ -10,6 +11,11 @@ from theano import tensor as T
 
 __author__ = 'krekle'
 
+"""
+Theano Tutorials used as a starting point:
+Ref: https://www.youtube.com/watch?v=S75EdAcXHKk
+Ref: https://github.com/Newmu/Theano-Tutorials
+"""
 
 
 ##############################
@@ -283,8 +289,22 @@ class ANN():
             self.testX, self.testY = test
             print('Test updated')
 
+    ##############################
+    ##                          ##
+    ##         Demo Prep        ##
+    ##                          ##
+    ##############################
+
     def load_flat(self, filename='demo_prep'):
         return mnist.load_cases(filename)
+
+    def demo(self, minor=True):
+        if minor:
+            mnist.minor_demo(self)
+        else:
+            r = int(input('d value: '))
+            d = _dir
+            mnist.major_demo(self, r, d)
 
 
 if __name__ == "__main__":

@@ -104,7 +104,7 @@ def reconstruct_image(flat_list, dims=(28, 28)):
 # You must get this procedure to work PRIOR to the demo session.  It will be swapped out with something very
 # similar during the demo session.
 
-def minor_demo(ann,ignore=0):
+def minor_demo(ann, ignore=0):
 
     def score_it(classification,k=4):
         params = {"results": str(ignore) + " " + str(classification), "raw": "1","k": k}
