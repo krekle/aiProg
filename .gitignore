@@ -1,5 +1,6 @@
 *.pyc
 .idea/*
 .idea
+*.txt
 module_6/basics/all_flat_mnist_testing_cases_text.txt
 module_6/basics/all_flat_mnist_training_cases_text.txt

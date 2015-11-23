@@ -50,13 +50,13 @@ class State():
             if str(ch).isdigit():
                 score += int(ch) * snake[i]
 
-        snake2 = [2, 4, 6, 8]
+        snake2 = [35, 30, 25, 15]
         for k in range(len(snake2)):
             ch = self.board[1][k]
             if str(ch).isdigit():
                 score += int(ch) * snake2[k]
 
-        snake3 = [1.8, 1.5, 1.3, 1.1]
+        snake3 = [30, 25, 15, 1]
         for j in range(len(snake3)):
             ch = self.board[2][j]
             if str(ch).isdigit():

@@ -1,19 +1,25 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import copy
-
-import os
 import random
 
 import numpy as np
 
 from gamelogic.board import Game, Direction
 from network import ANN
-from module_6.preprocessing import Process
-from module_6.ai2048demo import welch
+from module_6.demo.ai2048demo import welch
 
 __author__ = 'krekle'
 
+
+from sys import platform as _platform
+system_divider = None
+if _platform == "linux" or _platform == "linux2":
+    system_divider = '/'
+elif _platform == "darwin":
+    system_divider = '/'
+elif _platform == "win32":
+    system_divider = '\\'
 
 class Player:
     """
@@ -89,20 +95,21 @@ class Neural(Player):
 
     def __init__(self, games_count=50):
         # Load training data
-        data_2048 = np.loadtxt('log-2048.txt', dtype=float, usecols=range(17))
+        data_2048 = np.loadtxt('data'+system_divider+'log-2048.txt', dtype=float, usecols=range(17))
 
         # Get the labels
         raw_labels_2048 = data_2048[:, 16]
         labels_2048 = [[0 for y in range(4)] for x in range(len(raw_labels_2048))]
         for i in range(len(raw_labels_2048)):
             labels_2048[i][int(raw_labels_2048[i])] = 1.0
+
         labels_2048 = np.array(labels_2048)
 
         # Get the states
         states_2048 = np.delete(data_2048, np.s_[-1:], 1)
 
         # Preprocess
-        states_2048 = self.preprocess(states_2048)
+        # states_2048 = self.preprocess(states_2048)
 
         data = [states_2048, labels_2048, states_2048,
                 labels_2048]
@@ -110,7 +117,7 @@ class Neural(Player):
 
 
         # Initialize neural network
-        self.neural_net = ANN(nodes=(16, 700, 4), data=data)
+        self.neural_net = ANN(nodes=(16, 100, 4), data=data)
 
         # Train
         self.train()
@@ -119,31 +126,32 @@ class Neural(Player):
         super(Neural, self).__init__(games_count=games_count)
 
     def preprocess(self, data, d_type=np.float):
-        if type(data) == list:
-            data = Process.mergable_neighbours(data, shape=(4, 4)).flatten().astype(d_type)
-        else:
-            for state_index in range(len(data)):
-                data[state_index] = Process.mergable_neighbours(data[state_index], shape=(4, 4)).flatten().astype(
-                    d_type)
+        # if type(data) == list:
+        #    data = Process.mergable_neighbours(data, shape=(4, 4)).flatten().astype(d_type)
+        # else:
+        #    for state_index in range(len(data)):
+        #        data[state_index] = Process.mergable_neighbours(data[state_index], shape=(4, 4)).flatten().astype(
+        #            d_type)
 
         return data
 
-    def train(self):
+    def train(self, batch=10, verbose_level=2, epochs=1):
         """
         Method for training the network
         """
-        self.neural_net.train(batch=120, verbose_level=2, epochs=2)
+        print('Training')
+        self.neural_net.train(batch=batch, verbose_level=verbose_level, epochs=epochs)
 
     def do_move(self, game):
-        moved = False
 
         # Preprocess to match training
-        n = self.preprocess(game.grid)
+        # n = self.preprocess(game.grid)
         # print('Game grid: {game})'.format(game=game.grid))
         # print('After processing: {n})'.format(n=n))
 
         # Do move
-        prediction = self.neural_net.blind_test([n])[0]
+        prediction = self.neural_net.blind_test([np.array(game.grid).flatten()])[0]
+
         print(prediction)
         for pred in prediction:
             if game.move(self.directions[pred]):
@@ -153,10 +161,26 @@ class Neural(Player):
         return False
 
 
-while(True):
+def one(label):
+    print('Run: ' + str(label))
     ran = Random()
     ann = Neural()
-    print(ran.get_scores())
-    print(ann.get_scores())
 
+    print('Ran: ' + str(ran.get_scores()))
+    print('Ann: ' + str(ann.get_scores()))
+
+    #print(np.average(ran.get_scores()))
+    #print(np.average(ann.get_scores()))
+    #avg.append(np.average(ann.get_scores()))
+
+    # Welch Result
     print(welch(ran.get_scores(), ann.get_scores()))
+
+    #Return avg ann score
+    return np.average(ann.get_scores())
+
+
+avg = []
+for i in range(10):
+    avg.append(one(i+1))
+print(np.average(avg))

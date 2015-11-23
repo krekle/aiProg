@@ -27,5 +27,6 @@ class Log:
     def write_log(self):
         print 'Saving Log ...'
         print self.logtext
-        numpy.savetxt('log-gamelogic.txt', self.logtext, delimiter=" ", fmt="%s")
+        f_handle = file('log-gamelogic.txt', 'a')
+        numpy.savetxt(f_handle, self.logtext, delimiter=" ", fmt="%s")
         print 'Saving Log [ok]'

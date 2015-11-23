@@ -5,9 +5,12 @@ import code
 import math
 import numpy as np
 import theano
+import time
 from theano import tensor as T
 
 __author__ = 'krekle'
+
+
 
 ##############################
 ##                          ##
@@ -34,7 +37,6 @@ np.set_printoptions(threshold=np.nan)
 class ANN():
     def score(self, percent):
         total = math.ceil(5 - ((100 - percent) / 4))
-        print(total)
         return total
 
     ##############################
@@ -60,8 +62,8 @@ class ANN():
     ##############################
 
     # Stochastic Gradient Decent
-    def sgd(self, cost, params, lr=0.05):
-        gradients = T.grad(cost=cost, wrt=params)
+    def sgd(self, error, params, lr=0.05):
+        gradients = T.grad(cost=error, wrt=params)
         updates = []
         for p, g in zip(params, gradients):
             updates.append([p, p - g * lr])
@@ -86,11 +88,11 @@ class ANN():
     ##                          ##
     ##############################
 
-    def cross_entropy(self, model, known):
-        return T.mean(T.nnet.categorical_crossentropy(model, known))
+    def cross_entropy(self, out, known):
+        return T.mean(T.nnet.categorical_crossentropy(out, known))
 
-    def squared_sum(self, model, known):
-        return T.mean(T.sqr(model - known))
+    def squared_sum(self, out, known):
+        return T.mean(T.sqr(out - known))
 
     ##############################
     ##                          ##
@@ -118,6 +120,7 @@ class ANN():
                 # hiddens.append(self.sigmoid(start, node_width[i]))
             else:
                 # Hidden -> Hidden
+                # hiddens.append(self.sigmoid(hiddens[i - 1], node_width[i]))
                 hiddens.append(self.rectify(hiddens[i - 1], node_width[i]))
 
         # Hidden to output -> Cost function (softmax) Last Layer
@@ -130,7 +133,7 @@ class ANN():
     ##                          ##
     ##############################
 
-    def train(self, epochs=20, batch=128, verbose_level=2):
+    def train(self, epochs=20, batch=120, verbose_level=2):
         """
         Method for training the neural network
         :param epochs: Number of runs to loop over the training data
@@ -144,6 +147,8 @@ class ANN():
             if verbose_level >= 1:
                 print('Training ... [Epoch {level} / {total}]'.format(level=i + 1, total=epochs))
 
+            # Train batch-wise, with [batch*images] each time until
+            # All images are trained
             for start, end in zip(range(0, len(self.trainX), batch),
                                   range(batch, len(self.trainX), batch)):
                 error += self.training(self.trainX[start:end], self.trainY[start:end])
@@ -236,9 +241,11 @@ class ANN():
 
         # Error Function, crossentropy of predicted and actual
         self.error = self.cross_entropy(self.equation_model, self.known)
+        # self.error = self.squared_sum(self.equation_model, self.known)
 
         # Weight Improvement Function
         self.updates = self.rmsprop(self.error, self.layers)
+        # self.updates = self.sgd(self.error, self.layers)
 
         # Train function, output through error function, update with update
         self.training = theano.function(inputs=[self.unknown, self.known], outputs=self.error, updates=self.updates,
@@ -285,7 +292,7 @@ if __name__ == "__main__":
     print('##                 Starting Neural Network                ##')
     print('############################################################')
     print('#')
-    ann = ANN(nodes=[784, 625, 625, 10])
+    ann = ANN(nodes=[784, 800, 400, 10])
     print('# Network started with layers: 784, 625, 10 You now have \n'
           '# control of the neural network object ref: ann')
     print('#')
@@ -297,7 +304,7 @@ if __name__ == "__main__":
     print('############################################################')
     print('#')
     print('# To start training type: \n'
-          '# ann.training(epochs=[20], batch=[128], verbose_level=[1])')
+          '# ann.training(epochs=20, batch=128, verbose_level=2)')
     test_x, test_y = ann.get_tests()
     demo_x, demo_y = ann.load_flat()
 
@@ -309,7 +316,12 @@ if __name__ == "__main__":
     print('#')
     print('############################################################')
     print('')
+    s = time.time
 
+    #start = time.clock()
+    #ann.train()
+    #end = time.clock()
+    #print((str(end-start) + ' seconds'))
     # Start interactive shell
     code.interact(local=locals())
 
