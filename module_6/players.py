@@ -141,7 +141,7 @@ class Neural(Player):
         else:
             return Process.multiple_methods(argument=data, methods=[Process.logarithm, Process.moveable_lines])
 
-    def train(self, batch=10, verbose_level=2, epochs=1):
+    def train(self, batch=20, verbose_level=0, epochs=10):
         """
         Method for training the network
         """
@@ -151,6 +151,9 @@ class Neural(Player):
     def do_move(self, game):
 
         prediction = None
+
+        print(game.grid)
+        test = input('continue?')
 
         # Should preprocess ?
         if self.is_preprocess:
@@ -163,7 +166,7 @@ class Neural(Player):
             flat = [np.array(game.grid).flatten()]
             prediction = self.neural_net.blind_test(flat)[0]
 
-        print(prediction)
+        #print(prediction)
         for pred in prediction:
             if game.move(self.directions[pred]):
                 return True
@@ -177,8 +180,8 @@ def one(label):
     ran = Random()
     ann = Neural(preprocess=True)
 
-    print('Ran: ' + str(ran.get_scores()))
-    print('Ann: ' + str(ann.get_scores()))
+    #print('Ran: ' + str(ran.get_scores()))
+    #print('Ann: ' + str(ann.get_scores()))
 
     # print(np.average(ran.get_scores()))
     # print(np.average(ann.get_scores()))
@@ -192,6 +195,6 @@ def one(label):
 
 
 avg = []
-for i in range(10):
+for i in range(1):
     avg.append(one(i + 1))
 print(np.average(avg))
