@@ -1,19 +1,25 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import copy
-
-import os
 import random
 
 import numpy as np
 
 from gamelogic.board import Game, Direction
 from network import ANN
-from module_6.preprocessing import Process
-from module_6.ai2048demo import welch
+from module_6.demo.ai2048demo import welch
 
 __author__ = 'krekle'
 
+
+from sys import platform as _platform
+system_divider = None
+if _platform == "linux" or _platform == "linux2":
+    system_divider = '/'
+elif _platform == "darwin":
+    system_divider = '/'
+elif _platform == "win32":
+    system_divider = '\\'
 
 class Player:
     """
@@ -22,7 +28,7 @@ class Player:
     # Static Fields
     directions = [Direction.Left, Direction.Up, Direction.Right, Direction.Down]
 
-    def __init__(self, games_count=10000):
+    def __init__(self, games_count=50):
         # Create Fields
         self.games = []
         self.scores = []
@@ -89,7 +95,7 @@ class Neural(Player):
 
     def __init__(self, games_count=50):
         # Load training data
-        data_2048 = np.loadtxt('log-2048.txt', dtype=float, usecols=range(17))
+        data_2048 = np.loadtxt('data'+system_divider+'log-2048.txt', dtype=float, usecols=range(17))
 
         # Get the labels
         raw_labels_2048 = data_2048[:, 16]
@@ -133,6 +139,7 @@ class Neural(Player):
         """
         Method for training the network
         """
+        print('Training')
         self.neural_net.train(batch=batch, verbose_level=verbose_level, epochs=epochs)
 
     def do_move(self, game):
@@ -145,7 +152,7 @@ class Neural(Player):
         # Do move
         prediction = self.neural_net.blind_test([np.array(game.grid).flatten()])[0]
 
-        # print(prediction)
+        print(prediction)
         for pred in prediction:
             if game.move(self.directions[pred]):
                 return True
@@ -154,20 +161,26 @@ class Neural(Player):
         return False
 
 
-while (True):
-    avg = []
-    try:
-        ran = Random()
-        ann = Neural()
+def one(label):
+    print('Run: ' + str(label))
+    ran = Random()
+    ann = Neural()
 
-        #print(ran.get_scores())
-        #print(ann.get_scores())
+    print('Ran: ' + str(ran.get_scores()))
+    print('Ann: ' + str(ann.get_scores()))
 
-        print(np.average(ran.get_scores()))
+    #print(np.average(ran.get_scores()))
+    #print(np.average(ann.get_scores()))
+    #avg.append(np.average(ann.get_scores()))
 
-        print(np.average(ann.get_scores()))
-        avg.append(np.average(ann.get_scores()))
+    # Welch Result
+    print(welch(ran.get_scores(), ann.get_scores()))
 
-        # print(welch(ran.get_scores(), ann.get_scores()))
-    except KeyboardInterrupt:
-        print(np.average(avg))
+    #Return avg ann score
+    return np.average(ann.get_scores())
+
+
+avg = []
+for i in range(10):
+    avg.append(one(i+1))
+print(np.average(avg))
