@@ -97,7 +97,7 @@ class Neural(Player):
     def __init__(self, games_count=50, preprocess=False):
         self.is_preprocess = preprocess
         # Load training data
-        data_2048 = np.loadtxt('data' + system_divider + 'log-2048-grad.txt', dtype=float, usecols=range(17))
+        data_2048 = np.loadtxt('data' + system_divider + 'log-2048-snake.bak.txt', dtype=float, usecols=range(17))
 
         # Get the labels
         raw_labels_2048 = data_2048[:, 16]
@@ -111,7 +111,8 @@ class Neural(Player):
         states_2048 = np.delete(data_2048, np.s_[-1:], 1)
 
         # Preprocess training data
-        states_2048 = self.preprocess(states_2048)
+        if self.is_preprocess:
+            states_2048 = self.preprocess(states_2048)
 
         data = [states_2048, labels_2048, states_2048,
                 labels_2048]
@@ -119,7 +120,7 @@ class Neural(Player):
 
 
         # Initialize neural network
-        self.neural_net = ANN(nodes=(16, 100, 4), data=data)
+        self.neural_net = ANN(nodes=(24, 100, 4), data=data)
 
         # Train
         self.train()
@@ -129,25 +130,16 @@ class Neural(Player):
 
     def preprocess(self, data):
         shape = np.array(data).shape
-        if self.is_preprocess is True:
-            print('Preprocessing ...')
-            if shape[0] > shape[1]:
-                copy = []
-                for i in range(shape[0]):
-                    copy.append(Process.logarithm(data[i]))
-
-                return copy
-            else:
-                return Process.mergable_neighbours(data)
-        else:
+        # If list of flat lists
+        if shape[0] > shape[1]:
             copy = []
-            if shape[0] > shape[1]:
-                for i in range(shape[0]):
-                    copy.append(np.array(data[i]).flatten())
-                return copy
-            else:
-                return data
+            for i in range(shape[0]):
+                copy.append(Process.multiple_methods(argument=data[i], methods=[Process.logarithm, Process.moveable_lines]))
 
+            return copy
+        # If one single
+        else:
+            return Process.multiple_methods(argument=data, methods=[Process.logarithm, Process.moveable_lines])
 
     def train(self, batch=10, verbose_level=2, epochs=1):
         """
@@ -156,15 +148,20 @@ class Neural(Player):
         print('Training ...')
         self.neural_net.train(batch=batch, verbose_level=verbose_level, epochs=epochs)
 
-
     def do_move(self, game):
-        self.preprocess(game.grid)
 
-        # Preprocess to match training
-        n = self.preprocess(game.grid)
+        prediction = None
 
-        # Do move
-        prediction = self.neural_net.blind_test([n])[0]
+        # Should preprocess ?
+        if self.is_preprocess:
+            # Preprocess to match training
+            n = self.preprocess(game.grid)
+
+            # Do move
+            prediction = self.neural_net.blind_test([n])[0]
+        else:
+            flat = [np.array(game.grid).flatten()]
+            prediction = self.neural_net.blind_test(flat)[0]
 
         print(prediction)
         for pred in prediction:

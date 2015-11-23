@@ -6,7 +6,6 @@ import numpy as np
 
 
 class Process:
-
     @staticmethod
     def in_expand(in_grid):
         shape = np.array(in_grid).shape
@@ -72,3 +71,46 @@ class Process:
 
         # Flatten and return
         return Process.out_flatten(result)
+
+    @staticmethod
+    def moveable_lines(in_grid):
+        neighbours = Process.in_expand(Process.mergable_neighbours(in_grid))
+
+        lines = np.zeros(8)
+
+        # X-axis
+        for y in range(len(neighbours)):
+            addable_y = 0
+            for x in range(len(neighbours[y])):
+                if neighbours[y][x] > 0:
+                    addable_y += 1
+            if addable_y > 1:
+                lines[y] = 1
+
+        # Y-axis
+        for _x in range(len(neighbours[0])):
+            addable_x = 0
+            for _y in range(len(neighbours)):
+                if neighbours[_y][_x] > 0:
+                    addable_x += 1
+            if addable_x > 1:
+                lines[_x * 2] = 1
+
+        return Process.out_flatten(lines)
+
+    @staticmethod
+    def no_pro(in_grid):
+        expanded = Process.in_expand(in_grid)
+        return Process.out_flatten(expanded)
+
+    @staticmethod
+    def multiple_methods(argument=None, methods=None):
+        result = None
+        for method in methods:
+            if result is None:
+                result = method(argument)
+            else:
+                result = np.append(result, method(argument))
+
+
+        return result.flatten()

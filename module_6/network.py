@@ -67,7 +67,7 @@ class ANN():
         return updates
 
     # RMS prop
-    def rmsprop(self, error, params, rho=0.9, learning_rate=0.01):
+    def rmsprop(self, error, params, rho=0.9, learning_rate=0.001):
         grads = T.grad(cost=error, wrt=params)
         updates = []
         for p, g in zip(params, grads):
