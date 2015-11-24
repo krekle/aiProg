@@ -94,8 +94,9 @@ class Random(Player):
 class Neural(Player):
     neural_net = None
 
-    def __init__(self, games_count=50, preprocess=False):
+    def __init__(self, games_count=50, nodes=[100], preprocess=False):
         self.is_preprocess = preprocess
+
         # Load training data
         data_2048 = np.loadtxt('data' + system_divider + 'log-2048-snake.bak.txt', dtype=float, usecols=range(17))
 
@@ -104,7 +105,6 @@ class Neural(Player):
         labels_2048 = [[0 for y in range(4)] for x in range(len(raw_labels_2048))]
         for i in range(len(raw_labels_2048)):
             labels_2048[i][int(raw_labels_2048[i])] = 1.0
-
         labels_2048 = np.array(labels_2048)
 
         # Get the states
@@ -114,13 +114,18 @@ class Neural(Player):
         if self.is_preprocess:
             states_2048 = self.preprocess(states_2048)
 
+        # Wrap the data
         data = [states_2048, labels_2048, states_2048,
                 labels_2048]
 
+        # Get the imput size
+        input_size = np.array(states_2048).shape[1]
 
+        if nodes != [100]:
+            print('Layers ' + str(nodes))
 
         # Initialize neural network
-        self.neural_net = ANN(nodes=(24, 100, 4), data=data)
+        self.neural_net = ANN(nodes=[24] + nodes + [4], data=data)
 
         # Train
         self.train()
@@ -134,7 +139,8 @@ class Neural(Player):
         if shape[0] > shape[1]:
             copy = []
             for i in range(shape[0]):
-                copy.append(Process.multiple_methods(argument=data[i], methods=[Process.logarithm, Process.moveable_lines]))
+                copy.append(
+                    Process.multiple_methods(argument=data[i], methods=[Process.logarithm, Process.moveable_lines]))
 
             return copy
         # If one single
@@ -163,29 +169,28 @@ class Neural(Player):
             flat = [np.array(game.grid).flatten()]
             prediction = self.neural_net.blind_test(flat)[0]
 
-        #print(prediction)
+        # print(prediction)
         for pred in prediction:
             if game.move(self.directions[pred]):
                 return True
-        #print('Game over')
-        #print(game.grid)
+        # print('Game over')
+        # print(game.grid)
         # No lleagal moves, game over
         return False
 
 
-
-
-def one(label):
+def one(label, nodes, verbose):
     print('Run: ' + str(label))
     ran = Random()
-    ann = Neural(preprocess=True)
+    ann = Neural(nodes=nodes, preprocess=True)
 
-    print('Ran: ' + str(ran.get_scores()))
-    print('Ann: ' + str(ann.get_scores()))
+    if verbose >= 1:
+        print('Ran: ' + str(ran.get_scores()))
+        print('Ann: ' + str(ann.get_scores()))
 
-    # print(np.average(ran.get_scores()))
-    # print(np.average(ann.get_scores()))
-    # avg.append(np.average(ann.get_scores()))
+    if verbose >= 2:
+        print(np.average(ran.get_scores()))
+        print(np.average(ann.get_scores()))
 
     # Welch Result
     print(welch(ran.get_scores(), ann.get_scores()))
@@ -193,8 +198,18 @@ def one(label):
     # Return avg ann score
     return np.average(ann.get_scores())
 
-games = int(input('Number of Games:'))
-avg = []
-for i in range(games):
-    avg.append(one(i + 1))
-print(np.average(avg))
+
+def start():
+    nodes = input('(100) Hidden Layers (Separate <,>): ').split(',') or [100]
+    nodes = [int(n) for n in nodes]
+    run(nodes, int(input('Number of Games:')), int(input('verbose level: ')))
+
+
+def run(nodes, games, verbose):
+    avg = []
+    for i in range(games):
+        avg.append(one(i + 1, nodes, verbose))
+    print(np.average(avg))
+
+
+start()
