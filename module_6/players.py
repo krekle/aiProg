@@ -98,7 +98,7 @@ class Neural(Player):
         self.is_preprocess = preprocess
 
         # Load training data
-        data_2048 = np.loadtxt('data' + system_divider + 'log-2048-snake.bak.txt', dtype=float, usecols=range(17))
+        data_2048 = np.loadtxt('data' + system_divider + 'log-2048-demo.txt', dtype=float, usecols=range(17))
 
         # Get the labels
         raw_labels_2048 = data_2048[:, 16]
