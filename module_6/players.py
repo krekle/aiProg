@@ -202,14 +202,16 @@ def one(label, nodes, verbose):
 def start():
     nodes = input('(100) Hidden Layers (Separate <,>): ').split(',') or [100]
     nodes = [int(n) for n in nodes]
-    run(nodes, int(input('Number of Games:')), int(input('verbose level: ')))
+    run(nodes, int(input('(3) Number of Games:')), int(input('(1) verbose level: ')))
 
 
 def run(nodes, games, verbose):
     avg = []
     for i in range(games):
         avg.append(one(i + 1, nodes, verbose))
-    print(np.average(avg))
+    print('Average tile: ' + str(np.average(avg)))
 
+    # restart
+    start()
 
 start()
